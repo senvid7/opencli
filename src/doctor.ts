@@ -1,8 +1,7 @@
 /**
  * opencli doctor — diagnose browser connectivity.
  *
- * Simplified for the daemon-based architecture. No more token management,
- * MCP path discovery, or config file scanning.
+ * Simplified for the daemon-based architecture.
  */
 
 import chalk from 'chalk';
@@ -26,6 +25,7 @@ export type ConnectivityResult = {
   durationMs: number;
 };
 
+
 export type DoctorReport = {
   cliVersion?: string;
   daemonRunning: boolean;
@@ -42,11 +42,11 @@ export type DoctorReport = {
 export async function checkConnectivity(opts?: { timeout?: number }): Promise<ConnectivityResult> {
   const start = Date.now();
   try {
-    const mcp = new BrowserBridge();
-    const page = await mcp.connect({ timeout: opts?.timeout ?? 8 });
+    const bridge = new BrowserBridge();
+    const page = await bridge.connect({ timeout: opts?.timeout ?? 8 });
     // Try a simple eval to verify end-to-end connectivity
     await page.evaluate('1 + 1');
-    await mcp.close();
+    await bridge.close();
     return { ok: true, durationMs: Date.now() - start };
   } catch (err) {
     return { ok: false, error: getErrorMessage(err), durationMs: Date.now() - start };
@@ -58,9 +58,9 @@ export async function runBrowserDoctor(opts: DoctorOptions = {}): Promise<Doctor
   let initialStatus = await checkDaemonStatus();
   if (!initialStatus.running) {
     try {
-      const mcp = new BrowserBridge();
-      await mcp.connect({ timeout: 5 });
-      await mcp.close();
+      const bridge = new BrowserBridge();
+      await bridge.connect({ timeout: 5 });
+      await bridge.close();
     } catch {
       // Auto-start failed; we'll report it below.
     }
@@ -84,7 +84,7 @@ export async function runBrowserDoctor(opts: DoctorOptions = {}): Promise<Doctor
   }
   if (status.running && !status.extensionConnected) {
     issues.push(
-      'Daemon is running but the Chrome extension is not connected.\n' +
+      'Daemon is running but the Chrome/Chromium extension is not connected.\n' +
       'Please install the opencli Browser Bridge extension:\n' +
       '  1. Download from https://github.com/jackwener/opencli/releases\n' +
       '  2. Open chrome://extensions/ → Enable Developer Mode\n' +
@@ -94,7 +94,6 @@ export async function runBrowserDoctor(opts: DoctorOptions = {}): Promise<Doctor
   if (connectivity && !connectivity.ok) {
     issues.push(`Browser connectivity test failed: ${connectivity.error ?? 'unknown'}`);
   }
-
   if (status.extensionVersion && opts.cliVersion) {
     const extMajor = status.extensionVersion.split('.')[0];
     const cliMajor = opts.cliVersion.split('.')[0];

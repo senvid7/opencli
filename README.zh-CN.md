@@ -1,7 +1,7 @@
 # OpenCLI
 
 > **把任何网站、本地工具、Electron 应用变成能够让 AI 调用的命令行！**  
-> 零风控 · 复用 Chrome 登录 · AI 自动发现接口 · 全能 CLI 枢纽
+> 零风控 · 复用 Chrome/Chromium 登录 · AI 自动发现接口 · 全能 CLI 枢纽
 
 [![English](https://img.shields.io/badge/docs-English-1D4ED8?style=flat-square)](./README.md)
 [![npm](https://img.shields.io/npm/v/@jackwener/opencli?style=flat-square)](https://www.npmjs.com/package/@jackwener/opencli)
@@ -10,7 +10,7 @@
 
 OpenCLI 将任何网站、本地 CLI 或 Electron 应用（如 Antigravity）变成命令行工具 — B站、知乎、小红书、Twitter/X、Reddit、YouTube，以及 `gh`、`docker` 等[多种站点与工具](#内置命令) — 复用浏览器登录态，AI 驱动探索。
 
-**专为 AI Agent 打造**：只需在全局 `.cursorrules` 或 `AGENT.md` 中配置简单指令，引导 AI 通过 Bash 执行 `opencli list` 来检索可用的 CLI 工具及其用法。随后，将你常用的 CLI 列表整合注册进去（`opencli register mycli`），AI 便能瞬间学会自动调用相应的本地工具！
+**专为 AI Agent 打造**：加载 [`opencli-operate` skill](./skills/opencli-operate/SKILL.md)，赋予 AI Agent（Claude Code、Cursor 等）直接操控浏览器的能力——操作任意网站，并将这些交互沉淀为可复用的 CLI 命令。在 `AGENT.md` 或 `.cursorrules` 中配置 `opencli list`，AI 即可自动发现并调用所有可用工具。
 
 **opencli 支持 CLI 化所有 electron 应用！最强大更新来袭！**
 CLI all electron！现在支持把所有 electron 应用 CLI 化，从而组合出各种神奇的能力。
@@ -22,41 +22,24 @@ CLI all electron！现在支持把所有 electron 应用 CLI 化，从而组合�
 ## 亮点
 
 - **CLI All Electron** — 支持把所有 electron 应用（如 Antigravity Ultra）CLI 化，让 AI 控制自己！
-- **多站点覆盖** — 覆盖 B站、知乎、小红书、Twitter、Reddit，以及多种桌面应用
-- **零风控** — 复用 Chrome 登录态，无需存储任何凭证
+- **浏览器自动化** — `operate` 赋予 AI Agent 直接操控浏览器的能力：点击、输入、提取、截图，任意交互皆可脚本化
+- **网页转 CLI** — 将任意网站变成确定性命令行工具：79+ 预置适配器，或用 `opencli record` 沉淀自己的操作
+- **多站点覆盖** — 79+ 站点，横跨全球与中国平台（B站、知乎、小红书、Reddit、HackerNews 等），并支持通过 CDP 控制桌面 Electron 应用
+- **零风控** — 复用 Chrome/Chromium 登录态，无需存储任何凭证
 - **外部 CLI 枢纽** — 统一发现、自动安装、透传执行 `gh`、`docker` 等本地 CLI
 - **自修复配置** — `opencli doctor` 自动启动 daemon，诊断扩展和浏览器连接状态
-- **AI 原生** — `explore` 自动发现 API，`synthesize` 生成适配器，`cascade` 探测认证策略
-- **动态加载引擎** — 声明式的 `.yaml` 或者底层定制的 `.ts` 适配器，放入 `clis/` 文件夹即可自动注册生效
-
-## 为什么选 opencli？
-
-浏览器自动化工具很多，opencli 适合什么场景？
-
-| 你的需求 | 最佳工具 | 原因 |
-|----------|----------|------|
-| 定时从特定站点提取结构化数据 | **opencli** | 预定义适配器，确定性 JSON 输出，零 LLM 成本 |
-| AI Agent 需要可靠的站点操作 | **opencli** | 数百条命令，结构化输出，快速确定性响应 |
-| 临时探索未知网站 | Browser-Use、Stagehand | LLM 驱动的通用浏览，适合一次性任务 |
-| 大规模网页爬取 | Crawl4AI、Scrapy | 专为吞吐量和规模设计 |
-| 从终端控制桌面 Electron 应用 | **opencli** | CDP + AppleScript，目前唯一能做到这一点的 CLI 工具 |
-
-**opencli 的核心差异：**
-
+- **AI 原生** — `explore` 自动发现 API，`synthesize` 生成适配器，`cascade` 探测认证策略，`operate` 直接控制浏览器
 - **零 LLM 成本** — 运行时不消耗任何 token，跑一万次不花一分钱
 - **确定性** — 同一命令永远返回同一结构，可管道化、可脚本化、CI 友好
-- **覆盖广泛** — 50+ 站点，横跨全球与中国平台（B站、知乎、小红书、Reddit、HackerNews 等），并支持通过 CDP 控制桌面 Electron 应用
-
-> 与 Browser-Use、Crawl4AI、Firecrawl 等工具的详细对比，请查看 [Comparison Guide](./docs/comparison.md)。
 
 ## 前置要求
 
 - **Node.js**: >= 20.0.0
-- **Chrome** 浏览器正在运行，且**已登录目标网站**（如 bilibili.com、zhihu.com、xiaohongshu.com）
+- **Chrome 或 Chromium** 浏览器正在运行，且**已登录目标网站**（如 bilibili.com、zhihu.com、xiaohongshu.com、goofish.com）
 
-> **⚠️ 重要**：大多数命令复用你的 Chrome 登录状态。运行命令前，你必须已在 Chrome 中打开目标网站并完成登录。如果获取到空数据或报错，请先检查你的浏览器登录状态。
+> **⚠️ 重要**：大多数命令复用你的 Chrome/Chromium 登录状态。运行命令前，你必须已在 Chrome 或 Chromium 中打开目标网站并完成登录。如果获取到空数据或报错，请先检查你的浏览器登录状态。
 
-OpenCLI 通过轻量化的 **Browser Bridge** Chrome 扩展 + 微型 daemon 与浏览器通信（零配置，自动启动）。
+OpenCLI 通过轻量化的 **Browser Bridge** Chrome/Chromium 扩展 + 微型 daemon 与浏览器通信（零配置，自动启动）。
 
 ### Browser Bridge 扩展配置
 
@@ -64,7 +47,7 @@ OpenCLI 通过轻量化的 **Browser Bridge** Chrome 扩展 + 微型 daemon 与�
 
 **方式一：下载构建好的安装包（推荐）**
 1. 到 GitHub [Releases 页面](https://github.com/jackwener/opencli/releases) 下载最新的 `opencli-extension.zip`。
-2. 解压后打开 Chrome 的 `chrome://extensions`，启用右上角的 **开发者模式**。
+2. 解压后在 Chrome 或 Chromium 中打开 `chrome://extensions`，启用右上角的 **开发者模式**。
 3. 点击 **加载已解压的扩展程序**，选择解压后的文件夹。
 
 **方式二：加载源码（针对开发者）**
@@ -86,6 +69,9 @@ OpenCLI 通过轻量化的 **Browser Bridge** Chrome 扩展 + 微型 daemon 与�
 
 ```bash
 npm install -g @jackwener/opencli
+
+# 安装 AI Skills（Claude Code / Cursor）
+npx skills add jackwener/opencli
 ```
 
 直接使用：
@@ -116,6 +102,27 @@ opencli list  # 可以在任何地方使用了！
 npm install -g @jackwener/opencli@latest
 ```
 
+### 浏览器自动化 — 让 AI Agent 直接控制浏览器
+
+将 [`skills/opencli-operate/SKILL.md`](./skills/opencli-operate/SKILL.md) 指向你的 AI Agent（Claude Code、Cursor），即可开箱即用，内含完整命令参考与使用示例。
+
+可用命令：`open`、`state`、`click`、`type`、`select`、`keys`、`wait`、`get`、`screenshot`、`scroll`、`back`、`eval`、`network`、`init`、`verify`、`close`。
+
+### 安装 AI Skills
+
+OpenCLI 提供 [skills](./skills/) 供 AI Agent（Claude Code 等）使用：
+
+```bash
+# 安装所有 OpenCLI skills
+npx skills add jackwener/opencli
+
+# 或安装特定 skill
+npx skills add jackwener/opencli --skill opencli-usage      # 命令参考
+npx skills add jackwener/opencli --skill opencli-operate     # 浏览器自动化（AI Agent 专用）
+npx skills add jackwener/opencli --skill opencli-explorer    # 适配器开发指南
+npx skills add jackwener/opencli --skill opencli-oneshot     # 快速命令参考
+```
+
 ## 内置命令
 
 运行 `opencli list` 查看完整注册表。
@@ -125,6 +132,7 @@ npm install -g @jackwener/opencli@latest
 | **twitter** | `trending` `bookmarks` `profile` `search` `timeline` `thread` `following` `followers` `notifications` `post` `reply` `delete` `like` `article` `follow` `unfollow` `bookmark` `unbookmark` `download` `accept` `reply-dm` `block` `unblock` `hide-reply` | 浏览器 |
 | **reddit** | `hot` `frontpage` `popular` `search` `subreddit` `read` `user` `user-posts` `user-comments` `upvote` `save` `comment` `subscribe` `saved` `upvoted` | 浏览器 |
 | **tieba** | `hot` `posts` `search` `read` | 浏览器 |
+| **hupu** | `hot` `search` `detail` `mentions` `reply` `like` `unlike` | 浏览器 |
 | **cursor** | `status` `send` `read` `new` `dump` `composer` `model` `extract-code` `ask` `screenshot` `history` `export` | 桌面端 |
 | **bilibili** | `hot` `search` `me` `favorite` `history` `feed` `subtitle` `dynamic` `ranking` `following` `user-videos` `download` | 浏览器 |
 | **codex** | `status` `send` `read` `new` `dump` `extract-diff` `model` `ask` `screenshot` `history` `export` | 桌面端 |
@@ -138,6 +146,7 @@ npm install -g @jackwener/opencli@latest
 | **antigravity** | `status` `send` `read` `new` `dump` `extract-code` `model` `watch` | 桌面端 |
 | **chatgpt** | `status` `new` `send` `read` `ask` `model` | 桌面端 |
 | **xiaohongshu** | `search` `notifications` `feed` `user` `download` `publish` `creator-notes` `creator-note-detail` `creator-notes-summary` `creator-profile` `creator-stats` | 浏览器 |
+| **xiaoe** | `courses` `detail` `catalog` `play-url` `content` | 浏览器 |
 | **apple-podcasts** | `search` `episodes` `top` | 公开 |
 | **xiaoyuzhou** | `podcast` `podcast-episodes` `episode` | 公开 |
 | **zhihu** | `hot` `search` `question` `download` | 浏览器 |
@@ -159,7 +168,7 @@ npm install -g @jackwener/opencli@latest
 | **reuters** | `search` | 浏览器 |
 | **smzdm** | `search` | 浏览器 |
 | **web** | `read` | 浏览器 |
-| **weibo** | `hot` `search` | 浏览器 |
+| **weibo** | `hot` `search` `feed` `user` `me` `post` `comments` | 浏览器 |
 | **yahoo-finance** | `quote` | 浏览器 |
 | **sinafinance** | `news` | 🌐 公开 |
 | **barchart** | `quote` `options` `greeks` `flow` | 浏览器 |
@@ -169,15 +178,18 @@ npm install -g @jackwener/opencli@latest
 | **jike** | `feed` `search` `create` `like` `comment` `repost` `notifications` `post` `topic` `user` | 浏览器 |
 | **jimeng** | `generate` `history` | 浏览器 |
 | **yollomi** | `generate` `video` `edit` `upload` `models` `remove-bg` `upscale` `face-swap` `restore` `try-on` `background` `object-remover` | 浏览器 |
-| **linux-do** | `feed` `categories` `tags` `search` `topic` `user-topics` `user-posts` | 浏览器 |
+| **linux-do** | `hot` `latest` `feed` `search` `categories` `category` `tags` `topic` `topic-content` `user-posts` `user-topics` | 浏览器 |
 | **stackoverflow** | `hot` `search` `bounties` `unanswered` | 公开 |
 | **steam** | `top-sellers` | 公开 |
 | **weread** | `shelf` `search` `book` `highlights` `notes` `notebooks` `ranking` | 浏览器 |
 | **douban** | `search` `top250` `subject` `photos` `download` `marks` `reviews` `movie-hot` `book-hot` | 浏览器 |
 | **facebook** | `feed` `profile` `search` `friends` `groups` `events` `notifications` `memories` `add-friend` `join-group` | 浏览器 |
 | **google** | `news` `search` `suggest` `trends` | 公开 |
+| **amazon** | `bestsellers` `search` `product` `offer` `discussion` `movers-shakers` `new-releases` | 浏览器 |
+| **1688** | `search` `item` `assets` `download` `store` | 浏览器 |
+| **gemini** | `new` `ask` `image` `deep-research` `deep-research-result` | 浏览器 |
 | **spotify** | `auth` `status` `play` `pause` `next` `prev` `volume` `search` `queue` `shuffle` `repeat` | OAuth API |
-| **notebooklm** | `status` `list` `current` `get` `metadata` `bind-current` `use` `source-list` `source-get` `source-fulltext` `source-guide` `history` `note-list` `notes-list` `notes-get` `summary` | 浏览器 |
+| **notebooklm** | `status` `list` `open` `current` `get` `history` `summary` `note-list` `notes-get` `source-list` `source-get` `source-fulltext` `source-guide` | 浏览器 |
 | **36kr** | `news` `hot` `search` `article` | 公开 / 浏览器 |
 | **imdb** | `search` `title` `top` `trending` `person` `reviews` | 公开 |
 | **producthunt** | `posts` `today` `hot` `browse` | 公开 / 浏览器 |
@@ -189,9 +201,11 @@ npm install -g @jackwener/opencli@latest
 | **pixiv** | `ranking` `search` `user` `illusts` `detail` `download` | 浏览器 |
 | **tiktok** | `explore` `search` `profile` `user` `following` `follow` `unfollow` `like` `unlike` `comment` `save` `unsave` `live` `notifications` `friends` | 浏览器 |
 | **bluesky** | `search` `trending` `user` `profile` `thread` `feeds` `followers` `following` `starter-packs` | 公开 |
+| **xianyu** | `search` `item` `chat` | 浏览器 |
 | **douyin** | `videos` `publish` `drafts` `draft` `delete` `stats` `profile` `update` `hashtag` `location` `activities` `collections` | 浏览器 |
+| **yuanbao** | `new` `ask` | 浏览器 |
 
-66+ 适配器 — **[→ 查看完整命令列表](./docs/adapters/index.md)**
+79+ 适配器 — **[→ 查看完整命令列表](./docs/adapters/index.md)**
 
 ### 外部 CLI 枢纽
 
@@ -244,6 +258,7 @@ OpenCLI 支持从各平台下载图片、视频和文章。
 | **B站** | 视频 | 需要安装 `yt-dlp` |
 | **Twitter/X** | 图片、视频 | 从用户媒体页或单条推文下载 |
 | **Pixiv** | 图片 | 下载原始画质插画，支持多页作品 |
+| **1688** | 图片、视频 | 下载商品页中可见的商品素材 |
 | **知乎** | 文章（Markdown） | 导出文章，可选下载图片到本地 |
 | **微信公众号** | 文章（Markdown） | 导出微信公众号文章为 Markdown |
 | **豆瓣** | 图片 | 下载电影条目的海报 / 剧照图片 |
@@ -277,6 +292,9 @@ opencli twitter download --tweet-url "https://x.com/user/status/123" --output ./
 
 # 下载豆瓣电影海报 / 剧照
 opencli douban download 30382501 --output ./douban
+
+# 下载 1688 商品页中的图片 / 视频素材
+opencli 1688 download 841141931191 --output ./1688-downloads
 
 # 导出知乎文章为 Markdown
 opencli zhihu download "https://zhuanlan.zhihu.com/p/xxx" --output ./zhihu
@@ -356,9 +374,9 @@ opencli plugin uninstall my-tool                            # 卸载
 
 如果你是一个被要求查阅代码并编写新 `opencli` 适配器的 AI，请遵守以下工作流。
 
-> **快速模式**：只想为某个页面快速生成一个命令？看 [CLI-ONESHOT.md](./CLI-ONESHOT.md) — 给一个 URL + 一句话描述，4 步搞定。
+> **快速模式**：只想为某个页面快速生成一个命令？看 [opencli-oneshot skill](./skills/opencli-oneshot/SKILL.md) — 给一个 URL + 一句话描述，4 步搞定。
 
-> **完整模式**：在编写任何新代码前，先阅读 [CLI-EXPLORER.md](./CLI-EXPLORER.md)。它包含完整的适配器探索开发指南、API 探测流程、5级认证策略以及常见陷阱。
+> **完整模式**：在编写任何新代码前，先阅读 [opencli-explorer skill](./skills/opencli-explorer/SKILL.md)。它包含完整的适配器探索开发指南、API 探测流程、5级认证策略以及常见陷阱。
 
 ```bash
 # 1. Deep Explore — 网络拦截 → 响应分析 → 能力推理 → 框架检测
@@ -379,11 +397,11 @@ opencli cascade https://api.example.com/data
 ## 常见问题排查
 
 - **"Extension not connected" 报错**
-  - 确保你当前的 Chrome 已安装且**开启了** opencli Browser Bridge 扩展（在 `chrome://extensions` 中检查）。
+  - 确保你当前的 Chrome 或 Chromium 已安装且**开启了** opencli Browser Bridge 扩展（在 `chrome://extensions` 中检查）。
 - **"attach failed: Cannot access a chrome-extension:// URL" 报错**
-  - 其他 Chrome 扩展（如 youmind、New Tab Override 或 AI 助手类扩展）可能产生冲突。请尝试**暂时禁用其他扩展**后重试。
+  - 其他 Chrome/Chromium 扩展（如 youmind、New Tab Override 或 AI 助手类扩展）可能产生冲突。请尝试**暂时禁用其他扩展**后重试。
 - **返回空数据，或者报错 "Unauthorized"**
-  - Chrome 里的登录态可能已经过期。请打开当前 Chrome 页面，在新标签页重新手工登录或刷新该页面。
+  - Chrome/Chromium 里的登录态可能已经过期。请打开当前页面，在新标签页重新手工登录或刷新该页面。
 - **Node API 错误 (如 parseArgs, fs 等)**
   - 确保 Node.js 版本 `>= 20`。
 - **Daemon 问题**
