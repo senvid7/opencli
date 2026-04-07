@@ -1,4 +1,4 @@
-import type { IPage } from '../../../types.js';
+import type { IPage } from '@jackwener/opencli/types';
 import type { EtsyProductBasic, EtsyReview } from '../types.js';
 
 /** Wait for page content to settle */

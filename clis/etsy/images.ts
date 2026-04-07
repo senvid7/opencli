@@ -1,6 +1,6 @@
-import { cli, Strategy } from '../../registry.js';
-import type { IPage } from '../../types.js';
-import { EmptyResultError, CommandExecutionError } from '../../errors.js';
+import { cli, Strategy } from '@jackwener/opencli/registry';
+import type { IPage } from '@jackwener/opencli/types';
+import { EmptyResultError, CommandExecutionError } from '@jackwener/opencli/errors';
 import { waitForContent, extractBasicInfo } from './_shared/helpers.js';
 import type { EtsyImageResult } from './types.js';
 import { execSync } from 'child_process';

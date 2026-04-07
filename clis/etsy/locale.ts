@@ -1,5 +1,5 @@
-import { cli, Strategy } from '../../registry.js';
-import type { IPage } from '../../types.js';
+import { cli, Strategy } from '@jackwener/opencli/registry';
+import type { IPage } from '@jackwener/opencli/types';
 import { waitForContent } from './_shared/helpers.js';
 
 cli({

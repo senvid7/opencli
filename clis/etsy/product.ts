@@ -1,6 +1,6 @@
-import { cli, Strategy } from '../../registry.js';
-import type { IPage } from '../../types.js';
-import { EmptyResultError } from '../../errors.js';
+import { cli, Strategy } from '@jackwener/opencli/registry';
+import type { IPage } from '@jackwener/opencli/types';
+import { EmptyResultError } from '@jackwener/opencli/errors';
 import { waitForContent, extractBasicInfo, extractDetailInfo } from './_shared/helpers.js';
 import type { EtsyProductDetail } from './types.js';
 

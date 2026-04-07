@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getRegistry } from '../../registry.js';
+import { getRegistry } from '@jackwener/opencli/registry';
 import './product.js';
 import './search.js';
 import './images.js';
