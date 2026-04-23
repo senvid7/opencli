@@ -9,7 +9,8 @@
  *   1. Origin check — reject HTTP/WS from non chrome-extension:// origins
  *   2. Custom header — require X-OpenCLI header (browsers can't send it
  *      without CORS preflight, which we deny)
- *   3. No CORS headers — responses never include Access-Control-Allow-Origin
+ *   3. No CORS headers on command endpoints — only /ping is readable from the
+ *      Browser Bridge extension origin so the extension can probe daemon reachability
  *   4. Body size limit — 1 MB max to prevent OOM
  *   5. WebSocket verifyClient — reject upgrade before connection is established
  *
@@ -67,9 +68,23 @@ function readBody(req: IncomingMessage): Promise<string> {
   });
 }
 
-function jsonResponse(res: ServerResponse, status: number, data: unknown): void {
-  res.writeHead(status, { 'Content-Type': 'application/json' });
+function jsonResponse(
+  res: ServerResponse,
+  status: number,
+  data: unknown,
+  extraHeaders?: Record<string, string>,
+): void {
+  res.writeHead(status, { 'Content-Type': 'application/json', ...extraHeaders });
   res.end(JSON.stringify(data));
+}
+
+export function getResponseCorsHeaders(pathname: string, origin?: string): Record<string, string> | undefined {
+  if (pathname !== '/ping') return undefined;
+  if (!origin || !origin.startsWith('chrome-extension://')) return undefined;
+  return {
+    'Access-Control-Allow-Origin': origin,
+    Vary: 'Origin',
+  };
 }
 
 async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -104,7 +119,7 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
   // Timing side-channels can reveal daemon presence to local processes, which
   // is an accepted risk given the daemon is loopback-only and short-lived.
   if (req.method === 'GET' && pathname === '/ping') {
-    jsonResponse(res, 200, { ok: true });
+    jsonResponse(res, 200, { ok: true }, getResponseCorsHeaders(pathname, origin));
     return;
   }
 
@@ -173,6 +188,14 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
       const timeoutMs = typeof body.timeout === 'number' && body.timeout > 0
         ? body.timeout * 1000
         : 120000;
+      if (pending.has(body.id)) {
+        jsonResponse(res, 409, {
+          id: body.id,
+          ok: false,
+          error: 'Duplicate command id already pending; retry',
+        });
+        return;
+      }
       const result = await new Promise<unknown>((resolve, reject) => {
         const timer = setTimeout(() => {
           pending.delete(body.id);
@@ -291,6 +314,7 @@ wss.on('connection', (ws: WebSocket) => {
     if (extensionWs === ws) {
       extensionWs = null;
       extensionVersion = null;
+      extensionCompatRange = null;
       // Reject pending requests in case 'close' does not follow this 'error'
       for (const [, p] of pending) {
         clearTimeout(p.timer);
