@@ -47,6 +47,8 @@ export interface BrowserSessionInfo {
 export interface IPage {
   goto(url: string, options?: { waitUntil?: 'load' | 'none'; settleMs?: number }): Promise<void>;
   evaluate(js: string): Promise<any>;
+  /** Safely evaluate JS with pre-serialized arguments — prevents injection. */
+  evaluateWithArgs?(js: string, args: Record<string, unknown>): Promise<any>;
   getCookies(opts?: { domain?: string; url?: string }): Promise<BrowserCookie[]>;
   snapshot(opts?: SnapshotOptions): Promise<any>;
   click(ref: string): Promise<void>;
@@ -67,7 +69,7 @@ export interface IPage {
   getInterceptedRequests(): Promise<any[]>;
   waitForCapture(timeout?: number): Promise<void>;
   screenshot(options?: ScreenshotOptions): Promise<string>;
-  startNetworkCapture?(pattern?: string): Promise<void>;
+  startNetworkCapture?(pattern?: string): Promise<boolean>;
   readNetworkCapture?(): Promise<unknown[]>;
   /**
    * Set local file paths on a file input element via CDP DOM.setFileInputFiles.
@@ -82,7 +84,9 @@ export interface IPage {
   closeWindow?(): Promise<void>;
   /** Returns the current page URL, or null if unavailable. */
   getCurrentUrl?(): Promise<string | null>;
-  /** Returns the active tab ID, or undefined if not yet resolved. */
+  /** Returns the active page identity (targetId), or undefined if not yet resolved. */
+  getActivePage?(): string | undefined;
+  /** @deprecated Use getActivePage() instead */
   getActiveTabId?(): number | undefined;
   /** Send a raw CDP command via chrome.debugger passthrough. */
   cdp?(method: string, params?: Record<string, unknown>): Promise<unknown>;

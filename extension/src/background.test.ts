@@ -80,6 +80,22 @@ function createChromeMock() {
         return tab;
       }),
       onUpdated: { addListener: vi.fn(), removeListener: vi.fn() } as Listener<(id: number, info: chrome.tabs.TabChangeInfo) => void>,
+      onRemoved: { addListener: vi.fn() } as Listener<(tabId: number) => void>,
+    },
+    debugger: {
+      getTargets: vi.fn(async () => tabs.map(t => ({
+        type: 'page',
+        id: `target-${t.id}`,
+        tabId: t.id,
+        url: t.url ?? '',
+        title: t.title ?? '',
+        attached: false,
+      }))),
+      attach: vi.fn(),
+      detach: vi.fn(),
+      sendCommand: vi.fn(),
+      onDetach: { addListener: vi.fn() } as Listener<(source: { tabId?: number }) => void>,
+      onEvent: { addListener: vi.fn() } as Listener<(source: any, method: string, params: any) => void>,
     },
     windows: {
       get: vi.fn(async (windowId: number) => ({ id: windowId })),
@@ -130,7 +146,7 @@ describe('background tab isolation', () => {
     expect(result.data).toEqual([
       {
         index: 0,
-        tabId: 1,
+        page: 'target-1',
         url: 'https://automation.example',
         title: 'automation',
         active: true,
@@ -169,14 +185,54 @@ describe('background tab isolation', () => {
     expect(result).toEqual({
       id: 'same-url',
       ok: true,
+      page: 'target-1',
       data: {
         title: 'bilibili',
         url: 'https://www.bilibili.com/',
-        tabId: 1,
         timedOut: false,
       },
     });
     expect(update).not.toHaveBeenCalled();
+  });
+
+  it('keeps the debugger attached during navigation when network capture is active', async () => {
+    const { chrome, tabs } = createChromeMock();
+    const onUpdatedListeners: Array<(id: number, info: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab) => void> = [];
+    chrome.tabs.onUpdated.addListener = vi.fn((fn) => { onUpdatedListeners.push(fn); });
+    chrome.tabs.onUpdated.removeListener = vi.fn((fn) => {
+      const idx = onUpdatedListeners.indexOf(fn);
+      if (idx >= 0) onUpdatedListeners.splice(idx, 1);
+    });
+    chrome.tabs.update = vi.fn(async (tabId: number, updates: { active?: boolean; url?: string }) => {
+      const tab = tabs.find((entry) => entry.id === tabId);
+      if (!tab) throw new Error(`Unknown tab ${tabId}`);
+      if (updates.active !== undefined) tab.active = updates.active;
+      if (updates.url !== undefined) tab.url = updates.url;
+      tab.status = 'complete';
+      for (const listener of [...onUpdatedListeners]) {
+        listener(tabId, { status: 'complete', url: tab.url }, tab as chrome.tabs.Tab);
+      }
+      return tab;
+    });
+    vi.stubGlobal('chrome', chrome);
+
+    const detachMock = vi.fn(async () => {});
+    vi.doMock('./cdp', () => ({
+      registerListeners: vi.fn(),
+      hasActiveNetworkCapture: vi.fn(() => true),
+      detach: detachMock,
+    }));
+
+    const mod = await import('./background');
+    mod.__test__.setAutomationWindowId('site:eos', 1);
+
+    const result = await mod.__test__.handleNavigate(
+      { id: 'capture-nav', action: 'navigate', url: 'https://eos.douyin.com/livesite/live/current', workspace: 'site:eos' },
+      'site:eos',
+    );
+
+    expect(result.ok).toBe(true);
+    expect(detachMock).not.toHaveBeenCalled();
   });
 
   it('keeps hash routes distinct when comparing target URLs', async () => {
