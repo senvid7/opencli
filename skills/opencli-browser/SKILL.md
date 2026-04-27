@@ -25,8 +25,32 @@ Until `doctor` is green, nothing else will work. Typical failures: Chrome not ru
 ## Window lifecycle
 
 - `opencli browser *` commands already keep the automation session alive between calls. The window stays open until you run `opencli browser close` or the idle timeout expires.
+- `opencli browser bind` binds a `bound:*` workspace to the Chrome tab you already have open. Use this for logged-in pages, SSO flows, or pages you manually positioned before handing control to the agent.
 - `--focus` (or `OPENCLI_WINDOW_FOCUSED=1`) opens the automation window in the foreground. Use it when you want to watch the page live.
 - `--live` (or `OPENCLI_LIVE=1`) is mainly for browser-backed adapter commands such as `opencli xiaohongshu note ...`. It keeps the adapter's automation window open after the command returns so you can inspect the final page state.
+
+### Bind Tab
+
+```bash
+opencli browser bind --domain example.com
+opencli browser --workspace bound:default state
+opencli browser --workspace bound:default click "Search"
+opencli browser --workspace bound:default network
+opencli browser unbind
+```
+
+Binding uses a separate `bound:*` workspace. It never owns the user window, never closes the user tab, and fails closed if the tab is closed or becomes non-debuggable. Re-run `bind` when you switch to a different real tab.
+
+Use `--domain <host>` and `--path-prefix <path>` to avoid binding the wrong tab:
+
+```bash
+opencli browser bind --workspace bound:gmail --domain mail.google.com --path-prefix /mail
+opencli browser --workspace bound:gmail state
+```
+
+Navigation is blocked by default on bound workspaces because it can destroy the logged-in/positioned state you wanted to preserve. `browser open` and `browser back` require `--allow-navigate-bound`; tab mutation (`tab new`, `tab select`, `tab close`) is blocked for bound workspaces. Use a normal `browser:*` automation workspace when you want OpenCLI to own tab/window lifecycle.
+
+`opencli browser sessions` returns `idleMsRemaining: null` for bound workspaces. That means there is no OpenCLI idle-close timer; the binding lasts until `unbind`, tab close, window close, or daemon restart.
 
 ---
 
@@ -159,6 +183,8 @@ browser network --ttl <ms>             # cache TTL (default 24h)
 
 List entries look like `{key, method, status, url, ct, size, shape, body_truncated?}`. Detail envelope is `{key, url, method, status, ct, size, shape, body, body_truncated?, body_full_size?, body_truncation_reason}`. Cache lives in `~/.opencli/cache/browser-network/` so you can re-inspect without re-triggering the request.
 
+Default output keeps JSON/XML/plain-text and JS-like API responses, then drops obvious static assets and telemetry by URL. If an expected endpoint is missing, run `browser network --all` once and check whether an unusual content type or URL filter hid it.
+
 ### Tabs & session
 
 | command | purpose |
@@ -169,6 +195,8 @@ List entries look like `{key, method, status, url, ct, size, shape, body_truncat
 | `browser tab close [targetId]` | Close by `page`. |
 | `browser back` | History back on the active tab. |
 | `browser close` | Close the automation window when done. |
+| `browser bind` | Bind `bound:default` (or `--workspace bound:<name>`) to the current Chrome tab. |
+| `browser unbind` | Detach a bound workspace without closing the user tab/window. |
 
 ---
 
@@ -337,7 +365,7 @@ opencli browser eval "(() => document.querySelector('input[name=cardnumber]')?.v
 
 | symptom | fix |
 |---------|-----|
-| `opencli doctor` red: "Browser not connected" | Start Chrome with `--remote-debugging-port=9222`, or rerun the extension install. |
+| `opencli doctor` red: "Browser not connected" | Start Chrome with `--remote-debugging-port=9222`, or install the extension from the [Chrome Web Store](https://chromewebstore.google.com/detail/opencli/ildkmabpimmkaediidaifkhjpohdnifk). |
 | `attach failed: chrome-extension://...` | Disable 1Password / other CDP-hungry extensions temporarily. |
 | `selector_not_found` right after `state` | Page mutated. `wait selector "..."` then retry. |
 | `stale_ref` across every command | You are reusing refs from a prior page. Re-`state`. |

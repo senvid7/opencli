@@ -41,6 +41,10 @@ npm install -g @jackwener/opencli
 
 OpenCLI connects to Chrome/Chromium through a lightweight Browser Bridge extension plus a small local daemon. The daemon auto-starts when needed.
 
+**Option A — Chrome Web Store (recommended):**
+Install **OpenCLI** from the [Chrome Web Store](https://chromewebstore.google.com/detail/opencli/ildkmabpimmkaediidaifkhjpohdnifk).
+
+**Option B — Manual install:**
 1. Download the latest `opencli-extension-v{version}.zip` from the GitHub [Releases page](https://github.com/jackwener/opencli/releases).
 2. Unzip it, open `chrome://extensions`, and enable **Developer mode**.
 3. Click **Load unpacked** and select the unzipped folder.
@@ -234,7 +238,7 @@ To load the source Browser Bridge extension:
 | **quark** | `ls` `mkdir` `mv` `rename` `rm` `save` `share-tree` |
 | **uiverse** | `code` `preview` |
 | **baidu-scholar** | `search` |
-| **google-scholar** | `search` |
+| **google-scholar** | `search` `cite` `profile` |
 | **gov-law** | `search` `recent` |
 | **gov-policy** | `search` `recent` |
 | **nowcoder** | `hot` `trending` `topics` `recommend` `creators` `companies` `jobs` `search` `suggest` `experience` `referral` `salary` `papers` `practice` `notifications` `detail` |
@@ -383,7 +387,7 @@ See **[TESTING.md](./TESTING.md)** for how to run and write tests.
 
 ## Troubleshooting
 
-- **"Extension not connected"** — Ensure the Browser Bridge extension is installed and **enabled** in `chrome://extensions` in Chrome or Chromium.
+- **"Extension not connected"** — Ensure the Browser Bridge extension is installed from the [Chrome Web Store](https://chromewebstore.google.com/detail/opencli/ildkmabpimmkaediidaifkhjpohdnifk) and **enabled** in `chrome://extensions`.
 - **"attach failed: Cannot access a chrome-extension:// URL"** — Another extension may be interfering. Try disabling other extensions temporarily.
 - **Empty data or 'Unauthorized' error** — Your Chrome/Chromium login session may have expired. Navigate to the target site and log in again.
 - **Node API errors** — Ensure Node.js >= 21. Some features require `node:util` styleText (stable in Node 21+).

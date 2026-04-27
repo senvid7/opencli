@@ -12,6 +12,7 @@ OpenCLI turns any website, Electron desktop app, or external CLI into a uniform 
 
 - **Adapter commands** — `opencli <site> <command> [...]`. Built-in adapters live in `clis/`, user adapters in `~/.opencli/clis/`. Each is backed by a strategy (`PUBLIC | COOKIE | HEADER | INTERCEPT | UI | LOCAL`) that tells you whether a Chrome session is needed.
 - **Browser driving** — `opencli browser *` subcommands (`open`, `state`, `click`, `type`, `select`, `find`, `extract`, `network`, …) for ad-hoc interaction and scraping when no adapter covers the task. See `opencli-browser`.
+- **Current-tab binding** — `opencli browser bind --domain <host>` attaches a `bound:*` workspace to the Chrome tab the user already opened/logged into. Follow-up commands use `opencli browser --workspace bound:default ...`. See `opencli-browser` before using it; bound workspaces have stricter navigation/tab-mutation safety rules.
 - **External CLI passthrough** — `opencli gh`, `opencli docker`, `opencli vercel`, etc. Registered via `opencli install <name>` (auto-install from `external-clis.yaml`) or `opencli register <name>` (bring your own).
 
 ## Install
@@ -34,7 +35,7 @@ npx tsx src/main.ts <command>               # same surface, no global install
 | Strategy tag on `opencli list` | What it needs |
 |--------------------------------|---------------|
 | `PUBLIC` | Nothing — pure HTTP, no browser. |
-| `COOKIE` / `HEADER` | Chrome logged into the target site + **opencli Browser Bridge** extension loaded (see `extension/`). Command captures the credential from your live session — no re-login. |
+| `COOKIE` / `HEADER` | Chrome logged into the target site + **OpenCLI** extension installed from the [Chrome Web Store](https://chromewebstore.google.com/detail/opencli/ildkmabpimmkaediidaifkhjpohdnifk). Command captures the credential from your live session — no re-login. |
 | `INTERCEPT` | Same as COOKIE, plus opencli opens an automation window to capture a signed request. |
 | `UI` | Same as COOKIE, full DOM interaction. |
 | `LOCAL` | No browser; talks to a local/dev endpoint. |

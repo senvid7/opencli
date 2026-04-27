@@ -21,7 +21,7 @@ function generateId(): string {
 
 export interface DaemonCommand {
   id: string;
-  action: 'exec' | 'navigate' | 'tabs' | 'cookies' | 'screenshot' | 'close-window' | 'sessions' | 'set-file-input' | 'insert-text' | 'bind-current' | 'network-capture-start' | 'network-capture-read' | 'cdp' | 'frames';
+  action: 'exec' | 'navigate' | 'tabs' | 'cookies' | 'screenshot' | 'close-window' | 'sessions' | 'set-file-input' | 'insert-text' | 'bind' | 'network-capture-start' | 'network-capture-read' | 'cdp' | 'frames';
   /** Target page identity (targetId). Cross-layer contract with the extension. */
   page?: string;
   code?: string;
@@ -50,6 +50,8 @@ export interface DaemonCommand {
   windowFocused?: boolean;
   /** Custom idle timeout in seconds for this workspace session. Overrides the default. */
   idleTimeout?: number;
+  /** Explicitly allow navigation inside a borrowed bound-current tab. */
+  allowBoundNavigation?: boolean;
   /** Frame index for cross-frame operations (0-based, from 'frames' action) */
   frameIndex?: number;
 }
@@ -59,8 +61,17 @@ export interface DaemonResult {
   ok: boolean;
   data?: unknown;
   error?: string;
+  errorCode?: string;
+  errorHint?: string;
   /** Page identity (targetId) — present on page-scoped command responses */
   page?: string;
+}
+
+export class BrowserCommandError extends Error {
+  constructor(message: string, readonly code?: string, readonly hint?: string) {
+    super(message);
+    this.name = 'BrowserCommandError';
+  }
 }
 
 export interface DaemonStatus {
@@ -167,7 +178,7 @@ async function sendCommandRaw(
           await sleep(advice.delayMs);
           continue;
         }
-        throw new Error(result.error ?? 'Daemon command failed');
+        throw new BrowserCommandError(result.error ?? 'Daemon command failed', result.errorCode, result.errorHint);
       }
 
       return result;
@@ -212,6 +223,6 @@ export async function listSessions(): Promise<BrowserSessionInfo[]> {
   return Array.isArray(result) ? result : [];
 }
 
-export async function bindCurrentTab(workspace: string, opts: { matchDomain?: string; matchPathPrefix?: string } = {}): Promise<unknown> {
-  return sendCommand('bind-current', { workspace, ...opts });
+export async function bindTab(workspace: string, opts: { matchDomain?: string; matchPathPrefix?: string } = {}): Promise<unknown> {
+  return sendCommand('bind', { workspace, ...opts });
 }
