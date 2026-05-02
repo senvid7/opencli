@@ -9114,7 +9114,7 @@
   {
     "site": "jd",
     "name": "item",
-    "description": "京东商品详情（价格、店铺、规格参数、AVIF 图片）",
+    "description": "京东商品详情（价格、店铺、规格参数、主图、详情图）",
     "domain": "item.jd.com",
     "strategy": "cookie",
     "browser": true,
@@ -9129,9 +9129,9 @@
       {
         "name": "images",
         "type": "int",
-        "default": 10,
+        "default": 200,
         "required": false,
-        "help": "AVIF 图片数量上限（默认10）"
+        "help": "图片数量上限（默认200）"
       }
     ],
     "columns": [
@@ -9139,7 +9139,8 @@
       "price",
       "shop",
       "specs",
-      "avifImages"
+      "mainImages",
+      "detailImages"
     ],
     "type": "js",
     "modulePath": "jd/item.js",
@@ -17181,6 +17182,42 @@
         "default": 3,
         "required": false,
         "help": "Seconds to wait after page load"
+      },
+      {
+        "name": "wait-for",
+        "type": "str",
+        "required": false,
+        "valueRequired": true,
+        "help": "CSS selector to wait for in the main document or same-origin iframes"
+      },
+      {
+        "name": "wait-until",
+        "type": "str",
+        "default": "domstable",
+        "required": false,
+        "help": "Readiness policy after navigation: domstable or networkidle",
+        "choices": [
+          "domstable",
+          "networkidle"
+        ]
+      },
+      {
+        "name": "frames",
+        "type": "str",
+        "default": "same-origin",
+        "required": false,
+        "help": "Iframe handling mode: same-origin or none",
+        "choices": [
+          "same-origin",
+          "none"
+        ]
+      },
+      {
+        "name": "diagnose",
+        "type": "boolean",
+        "default": false,
+        "required": false,
+        "help": "Print render diagnostics (frames, empty containers, XHR/API-like requests) to stderr"
       },
       {
         "name": "stdout",
