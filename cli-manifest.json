@@ -3275,7 +3275,7 @@
   {
     "site": "boss",
     "name": "search",
-    "description": "BOSS直聘搜索职位",
+    "description": "BOSS直聘搜索职位（不带关键词时返回为你推荐职位）",
     "domain": "www.zhipin.com",
     "strategy": "cookie",
     "browser": true,
@@ -3283,9 +3283,9 @@
       {
         "name": "query",
         "type": "str",
-        "required": true,
+        "required": false,
         "positional": true,
-        "help": "Search keyword (e.g. AI agent, 前端)"
+        "help": "Search keyword (optional, empty = recommended jobs)"
       },
       {
         "name": "city",
@@ -3299,7 +3299,7 @@
         "type": "str",
         "default": "",
         "required": false,
-        "help": "Experience: 应届/1年以内/1-3年/3-5年/5-10年/10年以上"
+        "help": "Experience: 在校生(实习)/应届生(校招)/经验不限/1年以内/1-3年/3-5年/5-10年/10年以上"
       },
       {
         "name": "degree",
@@ -3321,6 +3321,13 @@
         "default": "",
         "required": false,
         "help": "Industry code or name (e.g. 100020, 互联网)"
+      },
+      {
+        "name": "jobType",
+        "type": "str",
+        "default": "",
+        "required": false,
+        "help": "Job type: 全职/兼职/实习（不传=不限，混合校招与实习）"
       },
       {
         "name": "page",
@@ -3346,6 +3353,7 @@
       "degree",
       "skills",
       "boss",
+      "bossOnline",
       "security_id",
       "url"
     ],
@@ -3532,9 +3540,8 @@
       {
         "name": "op",
         "type": "str",
-        "default": "~/Pictures/chatgpt",
         "required": false,
-        "help": "Output directory"
+        "help": "Output directory (default: ~/Pictures/chatgpt)"
       },
       {
         "name": "sd",
@@ -4381,10 +4388,11 @@
         "type": "str",
         "default": "instant",
         "required": false,
-        "help": "Model to use: instant or expert",
+        "help": "Model to use: instant, expert, or vision",
         "choices": [
           "instant",
-          "expert"
+          "expert",
+          "vision"
         ]
       },
       {
@@ -6845,6 +6853,65 @@
     "type": "js",
     "modulePath": "facebook/join-group.js",
     "sourceFile": "facebook/join-group.js",
+    "navigateBefore": "https://www.facebook.com"
+  },
+  {
+    "site": "facebook",
+    "name": "marketplace-inbox",
+    "description": "List recent Facebook Marketplace buyer/seller conversations",
+    "domain": "www.facebook.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "Number of conversations to return"
+      }
+    ],
+    "columns": [
+      "index",
+      "buyer",
+      "listing",
+      "snippet",
+      "time",
+      "unread"
+    ],
+    "type": "js",
+    "modulePath": "facebook/marketplace-inbox.js",
+    "sourceFile": "facebook/marketplace-inbox.js",
+    "navigateBefore": "https://www.facebook.com"
+  },
+  {
+    "site": "facebook",
+    "name": "marketplace-listings",
+    "description": "List your Facebook Marketplace seller listings",
+    "domain": "www.facebook.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "Number of listings to return"
+      }
+    ],
+    "columns": [
+      "index",
+      "title",
+      "price",
+      "status",
+      "listed",
+      "clicks",
+      "actions"
+    ],
+    "type": "js",
+    "modulePath": "facebook/marketplace-listings.js",
+    "sourceFile": "facebook/marketplace-listings.js",
     "navigateBefore": "https://www.facebook.com"
   },
   {
@@ -16018,7 +16085,7 @@
     "name": "following",
     "description": "Get accounts a Twitter/X user is following",
     "domain": "x.com",
-    "strategy": "intercept",
+    "strategy": "cookie",
     "browser": true,
     "args": [
       {
@@ -16045,7 +16112,7 @@
     "type": "js",
     "modulePath": "twitter/following.js",
     "sourceFile": "twitter/following.js",
-    "navigateBefore": true
+    "navigateBefore": "https://x.com"
   },
   {
     "site": "twitter",
@@ -20319,7 +20386,7 @@
     "name": "answer",
     "description": "Answer a Zhihu question",
     "domain": "www.zhihu.com",
-    "strategy": "ui",
+    "strategy": "cookie",
     "browser": true,
     "args": [
       {
@@ -20362,14 +20429,86 @@
     "type": "js",
     "modulePath": "zhihu/answer.js",
     "sourceFile": "zhihu/answer.js",
-    "navigateBefore": true
+    "navigateBefore": "https://www.zhihu.com"
+  },
+  {
+    "site": "zhihu",
+    "name": "collection",
+    "description": "知乎收藏夹内容列表（需要登录）",
+    "domain": "www.zhihu.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "id",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "收藏夹 ID (数字，可从收藏夹 URL 中获取)"
+      },
+      {
+        "name": "offset",
+        "type": "int",
+        "default": 0,
+        "required": false,
+        "help": "起始偏移量（用于分页）"
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "每页数量（最大 20）"
+      }
+    ],
+    "columns": [
+      "rank",
+      "type",
+      "title",
+      "author",
+      "votes",
+      "excerpt",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "zhihu/collection.js",
+    "sourceFile": "zhihu/collection.js",
+    "navigateBefore": "https://www.zhihu.com"
+  },
+  {
+    "site": "zhihu",
+    "name": "collections",
+    "description": "知乎收藏夹列表（需要登录）",
+    "domain": "www.zhihu.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "每页数量（最大 20）"
+      }
+    ],
+    "columns": [
+      "rank",
+      "title",
+      "item_count",
+      "description",
+      "collection_id"
+    ],
+    "type": "js",
+    "modulePath": "zhihu/collections.js",
+    "sourceFile": "zhihu/collections.js",
+    "navigateBefore": "https://www.zhihu.com"
   },
   {
     "site": "zhihu",
     "name": "comment",
     "description": "Create a top-level comment on a Zhihu answer or article",
     "domain": "zhihu.com",
-    "strategy": "ui",
+    "strategy": "cookie",
     "browser": true,
     "args": [
       {
@@ -20406,13 +20545,12 @@
       "target_type",
       "target",
       "author_identity",
-      "created_url",
-      "created_proof"
+      "created_url"
     ],
     "type": "js",
     "modulePath": "zhihu/comment.js",
     "sourceFile": "zhihu/comment.js",
-    "navigateBefore": true
+    "navigateBefore": "https://zhihu.com"
   },
   {
     "site": "zhihu",
@@ -20460,7 +20598,7 @@
     "name": "favorite",
     "description": "Favorite a Zhihu answer or article into a specific collection",
     "domain": "zhihu.com",
-    "strategy": "ui",
+    "strategy": "cookie",
     "browser": true,
     "args": [
       {
@@ -20501,14 +20639,14 @@
     "type": "js",
     "modulePath": "zhihu/favorite.js",
     "sourceFile": "zhihu/favorite.js",
-    "navigateBefore": true
+    "navigateBefore": "https://zhihu.com"
   },
   {
     "site": "zhihu",
     "name": "follow",
     "description": "Follow a Zhihu user or question",
     "domain": "www.zhihu.com",
-    "strategy": "ui",
+    "strategy": "cookie",
     "browser": true,
     "args": [
       {
@@ -20535,7 +20673,7 @@
     "type": "js",
     "modulePath": "zhihu/follow.js",
     "sourceFile": "zhihu/follow.js",
-    "navigateBefore": true
+    "navigateBefore": "https://www.zhihu.com"
   },
   {
     "site": "zhihu",
@@ -20569,7 +20707,7 @@
     "name": "like",
     "description": "Like a Zhihu answer or article",
     "domain": "zhihu.com",
-    "strategy": "ui",
+    "strategy": "cookie",
     "browser": true,
     "args": [
       {
@@ -20596,7 +20734,7 @@
     "type": "js",
     "modulePath": "zhihu/like.js",
     "sourceFile": "zhihu/like.js",
-    "navigateBefore": true
+    "navigateBefore": "https://zhihu.com"
   },
   {
     "site": "zhihu",
@@ -20667,6 +20805,67 @@
     "modulePath": "zhihu/search.js",
     "sourceFile": "zhihu/search.js",
     "navigateBefore": "https://www.zhihu.com"
+  },
+  {
+    "site": "zlibrary",
+    "name": "info",
+    "description": "Get book details and available download formats from a Z-Library book page",
+    "domain": "z-library.im",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "url",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "Z-Library book page URL (e.g. https://z-library.im/book/...)"
+      }
+    ],
+    "columns": [
+      "title",
+      "pdf",
+      "epub",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "zlibrary/info.js",
+    "sourceFile": "zlibrary/info.js",
+    "navigateBefore": false
+  },
+  {
+    "site": "zlibrary",
+    "name": "search",
+    "description": "Search Z-Library for books by title, author, ISBN, or keyword",
+    "domain": "z-library.im",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "query",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "Search keyword (title, author, ISBN, etc.)"
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 10,
+        "required": false,
+        "help": "Max results (1–25)"
+      }
+    ],
+    "columns": [
+      "rank",
+      "title",
+      "author",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "zlibrary/search.js",
+    "sourceFile": "zlibrary/search.js",
+    "navigateBefore": false
   },
   {
     "site": "zsxq",

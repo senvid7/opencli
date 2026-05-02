@@ -10,7 +10,7 @@
 
 OpenCLI 可以用同一套 CLI 做三类事情：
 
-- **直接使用现成适配器**：B站、知乎、小红书、Twitter/X、Reddit、HackerNews 等 [90+ 站点](#内置命令) 开箱即用。
+- **直接使用现成适配器**：B站、知乎、小红书、Twitter/X、Reddit、HackerNews 等 [100+ 站点](#内置命令) 开箱即用。
 - **让 AI Agent 操作任意网站**：在你的 AI Agent（Claude Code、Cursor 等）中安装 `opencli-adapter-author` skill，Agent 就能用你的已登录浏览器导航、点击、输入、提取任意网页内容。
 - **把新网站写成 CLI**：用 `opencli browser` 原语 + `opencli-adapter-author` skill，从站点侦察、API 发现、字段解码到 `opencli browser verify` 一条龙。
 
@@ -20,7 +20,7 @@ OpenCLI 可以用同一套 CLI 做三类事情：
 
 - **桌面应用控制** — 通过 CDP 直接在终端驱动 Electron 应用（Cursor、Codex、ChatGPT、Notion 等）。
 - **AI Agent 浏览器自动化** — 安装 `opencli-adapter-author` skill，你的 AI Agent 就能操作任意网站：导航、点击、输入、提取、截图——全部通过你的已登录 Chrome 会话完成。
-- **网站 → CLI** — 把任何网站变成确定性 CLI：90+ 内置适配器，或用 `opencli-adapter-author` skill + `opencli browser verify` 自己写。
+- **网站 → CLI** — 把任何网站变成确定性 CLI：100+ 站点能力已注册，或用 `opencli-adapter-author` skill + `opencli browser verify` 自己写。
 - **账号安全** — 复用 Chrome/Chromium 登录态，凭证永远不会离开浏览器。
 - **面向 AI Agent** — 一个 skill 带你走完站点侦察、API 发现、字段解码、适配器编写、验证的全流程。
 - **CLI 枢纽** — 统一发现、自动安装、纯透传任何外部 CLI（gh、docker、obsidian 等）。
@@ -31,7 +31,10 @@ OpenCLI 可以用同一套 CLI 做三类事情：
 
 ### 1. 安装 OpenCLI
 
+OpenCLI 要求 **Node.js >= 21**。
+
 ```bash
+node --version
 npm install -g @jackwener/opencli
 ```
 
@@ -67,8 +70,20 @@ opencli bilibili hot --limit 5
 
 - `opencli list` 查看当前所有命令
 - `opencli <site> <command>` 调用内置或生成好的适配器
-- `opencli register mycli` 把本地 CLI 接入同一发现入口
+- `opencli external register mycli` 把本地 CLI 接入同一发现入口
 - `opencli doctor` 处理浏览器连通性问题
+
+## 扩展 OpenCLI
+
+如果你想新增自己的命令，先看 [扩展 OpenCLI](./docs/zh/guide/extending-opencli.md)。README 只保留入口；目录结构、源码管理方式和安装命令放在文档里。
+
+| 需求 | 推荐路径 |
+|------|----------|
+| 把个人网站命令放在自己的 Git repo | `opencli plugin create` + `opencli plugin install file://...` |
+| 快速写一个本机私人 adapter | `opencli browser init <site>/<command>`，放在 `~/.opencli/clis/` |
+| 本地修改官方 adapter | `opencli adapter eject/status/reset` |
+| 发布或安装第三方命令 | `opencli plugin install github:user/repo` |
+| 包装已有本机 binary | `opencli external register <name>` |
 
 ## 给 AI Agent
 
@@ -155,7 +170,8 @@ OpenCLI 不只是网站 CLI，还可以：
 
 ## 前置要求
 
-- **Node.js**: >= 21.0.0
+- **Node.js**: >= 21.0.0（标准 npm 安装路径要求）
+- **Bun**: >= 1.0（可选替代运行时）
 - 浏览器型命令需要 Chrome 或 Chromium 处于运行中，并已登录目标网站
 
 > **重要**：浏览器型命令直接复用你的 Chrome/Chromium 登录态。如果拿到空数据或出现权限类失败，先确认目标站点已经在浏览器里打开并完成登录。
@@ -302,7 +318,7 @@ npm link
 | **douyin** | `videos` `publish` `drafts` `draft` `delete` `stats` `profile` `update` `hashtag` `location` `activities` `collections` | 浏览器 |
 | **yuanbao** | `new` `ask` | 浏览器 |
 
-90+ 适配器 — **[→ 查看完整命令列表](./docs/adapters/index.md)**
+100+ 站点能力 — **[→ 查看完整命令列表](./docs/adapters/index.md)**
 
 `*` `opencli xiaoyuzhou podcast`、`podcast-episodes`、`episode`、`download`、`transcript` 需要本地小宇宙凭证：`~/.opencli/xiaoyuzhou.json`。
 
@@ -502,8 +518,8 @@ opencli plugin uninstall my-tool                            # 卸载
   - 其他 Chrome/Chromium 扩展（如 youmind、New Tab Override 或 AI 助手类扩展）可能产生冲突。请尝试**暂时禁用其他扩展**后重试。
 - **返回空数据，或者报错 "Unauthorized"**
   - Chrome/Chromium 里的登录态可能已经过期。请打开当前页面，在新标签页重新手工登录或刷新该页面。
-- **Node API 错误 (如 parseArgs, fs 等)**
-  - 确保 Node.js 版本 `>= 21`（`node:util` 的 `styleText` 需要 Node 21+）。
+- **Node API 错误 / 缺少 `fetch` / 旧 Node 启动即崩**
+  - OpenCLI 要求 **Node.js >= 21**。先执行 `node --version`，如果版本过低先升级，再重试命令。
 - **Daemon 问题**
   - 检查 daemon 状态：`curl localhost:19825/status`
   - 查看扩展日志：`curl localhost:19825/logs`

@@ -10,16 +10,25 @@
  * 6. Lifecycle hooks (onBeforeExecute / onAfterExecute)
  */
 
-import { type CliCommand, type InternalCliCommand, type Arg, type CommandArgs, getRegistry, fullName } from './registry.js';
+import {
+  type BrowserCliCommand,
+  type CliCommand,
+  type InternalCliCommand,
+  type Arg,
+  type CommandArgs,
+  getRegistry,
+  fullName,
+} from './registry.js';
 import type { IPage } from './types.js';
 import { pathToFileURL } from 'node:url';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import { executePipeline } from './pipeline/index.js';
-import { AdapterLoadError, ArgumentError, CommandExecutionError, getErrorMessage } from './errors.js';
+import { adapterLoadError, ArgumentError, CommandExecutionError, getErrorMessage } from './errors.js';
 import { isDiagnosticEnabled, collectDiagnostic, emitDiagnostic } from './diagnostic.js';
 import { shouldUseBrowserSession } from './capabilityRouting.js';
 import { getBrowserFactory, browserSession, runWithTimeout, DEFAULT_BROWSER_COMMAND_TIMEOUT } from './runtime.js';
+import { resolveProfileContextId } from './browser/profile.js';
 import { emitHook, type HookContext } from './hooks.js';
 import { log } from './logger.js';
 import { isElectronApp } from './electron-apps.js';
@@ -104,7 +113,7 @@ async function runCommand(
         },
         (err) => {
           _loadedModules.delete(modulePath);
-          throw new AdapterLoadError(
+          throw adapterLoadError(
             `Failed to load adapter module ${modulePath}: ${getErrorMessage(err)}`,
             'Check that the adapter file exists and has no syntax errors.',
           );
@@ -116,20 +125,25 @@ async function runCommand(
 
     const updated = getRegistry().get(fullName(cmd));
     if (updated?.func) {
-      if (!page && updated.browser !== false) {
-        throw new CommandExecutionError(`Command ${fullName(cmd)} requires a browser session but none was provided`);
-      }
-      return updated.func(page as IPage, kwargs, debug);
+      return runCommandFunc(updated, page, kwargs, debug);
     }
     if (updated?.pipeline) return executePipeline(page, updated.pipeline, { args: kwargs, debug });
   }
 
-  if (cmd.func) return cmd.func(page as IPage, kwargs, debug);
+  if (cmd.func) return runCommandFunc(cmd, page, kwargs, debug);
   if (cmd.pipeline) return executePipeline(page, cmd.pipeline, { args: kwargs, debug });
   throw new CommandExecutionError(
     `Command ${fullName(cmd)} has no func or pipeline`,
     'This is likely a bug in the adapter definition. Please report this issue.',
   );
+}
+
+function runCommandFunc(cmd: CliCommand, page: IPage | null, kwargs: CommandArgs, debug: boolean): Promise<unknown> {
+  if (cmd.browser === false) return cmd.func!(kwargs, debug);
+  if (!page) {
+    throw new CommandExecutionError(`Command ${fullName(cmd)} requires a browser session but none was provided`);
+  }
+  return (cmd as BrowserCliCommand).func!(page, kwargs, debug);
 }
 
 function resolvePreNav(cmd: CliCommand): string | null {
@@ -156,7 +170,7 @@ export async function executeCommand(
   cmd: CliCommand,
   rawKwargs: CommandArgs,
   debug: boolean = false,
-  opts: { prepared?: boolean } = {},
+  opts: { prepared?: boolean; profile?: string } = {},
 ): Promise<unknown> {
   let kwargs: CommandArgs;
   try {
@@ -199,6 +213,7 @@ export async function executeCommand(
 
       ensureRequiredEnv(cmd);
       const BrowserFactory = getBrowserFactory(cmd.site);
+      const contextId = resolveProfileContextId(opts.profile);
       result = await browserSession(BrowserFactory, async (page) => {
         const preNavUrl = resolvePreNav(cmd);
         if (preNavUrl) {
@@ -242,7 +257,7 @@ export async function executeCommand(
           if (!keepOpen) await page.closeWindow?.().catch(() => {});
           throw err;
         }
-      }, { workspace: `site:${cmd.site}`, cdpEndpoint });
+      }, { workspace: `site:${cmd.site}`, cdpEndpoint, contextId });
     } else {
       // Non-browser commands: apply timeout only when explicitly configured.
       const timeout = cmd.timeoutSeconds;
