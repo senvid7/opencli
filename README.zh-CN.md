@@ -81,7 +81,7 @@ opencli bilibili hot --limit 5
 |------|----------|
 | 把个人网站命令放在自己的 Git repo | `opencli plugin create` + `opencli plugin install file://...` |
 | 快速写一个本机私人 adapter | `opencli browser init <site>/<command>`，放在 `~/.opencli/clis/` |
-| 本地修改官方 adapter | `opencli adapter eject/status/reset` |
+| 本地修改官方 adapter | `opencli adapter eject <site>` + `opencli adapter reset <site>` |
 | 发布或安装第三方命令 | `opencli plugin install github:user/repo` |
 | 包装已有本机 binary | `opencli external register <name>` |
 
@@ -158,7 +158,7 @@ Agent 在内部自动处理所有 `opencli browser` 命令——你只需用自�
 2. 发现目标 endpoint——network 精读、initial state、bundle 搜索、token 溯源，或 interceptor 兜底
 3. 定认证策略——`PUBLIC` / `COOKIE` / `HEADER` / `INTERCEPT`
 4. 字段解码 + 设计输出列
-5. `opencli browser init <site>/<name>` → 写适配器 → `opencli browser verify <site>/<name>`
+5. `opencli browser analyze <url>` 一步侦察，再 `opencli browser init <site>/<name>` → 写适配器 → `opencli browser verify <site>/<name>`
 6. 把站点知识沉到 `~/.opencli/sites/<site>/`，下次写同站点的其他命令直接吃缓存
 
 ### CLI 枢纽与桌面端适配器
@@ -188,7 +188,6 @@ OpenCLI 不只是网站 CLI，还可以：
 | `OPENCLI_CDP_ENDPOINT` | — | Chrome DevTools Protocol 端点，用于远程浏览器或 Electron 应用 |
 | `OPENCLI_CDP_TARGET` | — | 按 URL 子串过滤 CDP target（如 `detail.1688.com`） |
 | `OPENCLI_VERBOSE` | `false` | 启用详细日志（`-v` 也可以） |
-| `OPENCLI_DIAGNOSTIC` | `false` | 设为 `1` 时在失败时输出结构化诊断上下文 |
 | `DEBUG_SNAPSHOT` | — | 设为 `1` 输出 DOM 快照调试信息 |
 
 `--focus` 同时适用于 `opencli browser *` 和浏览器型 adapter 命令。`--live` 主要是给 adapter 命令用的：`browser` 子命令本来就会一直保留 automation window，直到你手动执行 `opencli browser close` 或等空闲超时。
@@ -301,6 +300,7 @@ npm link
 | **1688** | `search` `item` `assets` `download` `store` | 浏览器 |
 | **gitee** | `trending` `search` `user` | 公开 / 浏览器 |
 | **gemini** | `new` `ask` `image` `deep-research` `deep-research-result` | 浏览器 |
+| **claude** | `ask` `send` `new` `status` `read` `history` `detail` | 浏览器 |
 | **spotify** | `auth` `status` `play` `pause` `next` `prev` `volume` `search` `queue` `shuffle` `repeat` | OAuth API |
 | **notebooklm** | `status` `list` `open` `current` `get` `history` `summary` `note-list` `notes-get` `source-list` `source-get` `source-fulltext` `source-guide` | 浏览器 |
 | **36kr** | `news` `hot` `search` `article` | 公开 / 浏览器 |
@@ -505,7 +505,7 @@ opencli plugin uninstall my-tool                            # 卸载
 - 侦察站点，选定 pattern（SPA / SSR / JSONP / Token / Streaming）
 - 用 `opencli browser network`、`eval`、interceptor 等找到目标 endpoint
 - 定认证策略（`PUBLIC` / `COOKIE` / `HEADER` / `INTERCEPT`）
-- 字段解码、设计 columns、`opencli browser init` 生成骨架
+- 先用 `opencli browser analyze <url>` 一步侦察，再字段解码、设计 columns、`opencli browser init` 生成骨架
 - 交付前用 `opencli browser verify <site>/<name>` 验证
 
 在仓库外写的私有适配器放到 `~/.opencli/clis/<site>/<name>.js`；每个站点的 endpoint、字段映射、抓包样本会累积在 `~/.opencli/sites/<site>/`，下次写同站点的其他命令可以直接复用。

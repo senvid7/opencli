@@ -896,16 +896,35 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg?.type === "getStatus") {
     void (async () => {
       const contextId = await getCurrentContextId();
+      const connected = ws?.readyState === WebSocket.OPEN;
+      const extensionVersion = chrome.runtime.getManifest().version;
+      const daemonVersion = connected ? await fetchDaemonVersion() : null;
       sendResponse({
-        connected: ws?.readyState === WebSocket.OPEN,
+        connected,
         reconnecting: reconnectTimer !== null,
-        contextId
+        contextId,
+        extensionVersion,
+        daemonVersion
       });
     })();
     return true;
   }
   return false;
 });
+async function fetchDaemonVersion() {
+  try {
+    const res = await fetch(`http://${DAEMON_HOST}:${DAEMON_PORT}/status`, {
+      method: "GET",
+      headers: { "X-OpenCLI": "1" },
+      signal: AbortSignal.timeout(1500)
+    });
+    if (!res.ok) return null;
+    const body = await res.json();
+    return typeof body.daemonVersion === "string" ? body.daemonVersion : null;
+  } catch {
+    return null;
+  }
+}
 async function handleCommand(cmd) {
   const workspace = getWorkspaceKey(cmd.workspace);
   windowFocused = cmd.windowFocused === true;
@@ -1425,9 +1444,12 @@ async function handleScreenshot(cmd, workspace) {
 const CDP_ALLOWLIST = /* @__PURE__ */ new Set([
   // Agent DOM context
   "Accessibility.getFullAXTree",
+  "DOM.enable",
   "DOM.getDocument",
   "DOM.getBoxModel",
   "DOM.getContentQuads",
+  "DOM.focus",
+  "DOM.querySelector",
   "DOM.querySelectorAll",
   "DOM.scrollIntoViewIfNeeded",
   "DOMSnapshot.captureSnapshot",
@@ -1439,6 +1461,7 @@ const CDP_ALLOWLIST = /* @__PURE__ */ new Set([
   "Page.getLayoutMetrics",
   "Page.captureScreenshot",
   "Page.getFrameTree",
+  "Page.handleJavaScriptDialog",
   // Runtime.enable needed for CDP attach setup (Runtime.evaluate goes through 'exec' action)
   "Runtime.enable",
   // Emulation (used by screenshot full-page)

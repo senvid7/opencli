@@ -24,8 +24,7 @@ import { pathToFileURL } from 'node:url';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import { executePipeline } from './pipeline/index.js';
-import { adapterLoadError, ArgumentError, CommandExecutionError, getErrorMessage } from './errors.js';
-import { isDiagnosticEnabled, collectDiagnostic, emitDiagnostic } from './diagnostic.js';
+import { adapterLoadError, ArgumentError, CommandExecutionError, attachTraceReceipt, getErrorMessage } from './errors.js';
 import { shouldUseBrowserSession } from './capabilityRouting.js';
 import { getBrowserFactory, browserSession, runWithTimeout, DEFAULT_BROWSER_COMMAND_TIMEOUT } from './runtime.js';
 import { resolveProfileContextId } from './browser/profile.js';
@@ -33,11 +32,21 @@ import { emitHook, type HookContext } from './hooks.js';
 import { log } from './logger.js';
 import { isElectronApp } from './electron-apps.js';
 import { probeCDP, resolveElectronEndpoint } from './launcher.js';
+import { ObservationSession, exportObservationSession, type ObservationExportResult, type ObservationExportStatus } from './observation/index.js';
+import { resolveAdapterSourcePath } from './adapter-source.js';
 
 const _loadedModules = new Map<string, Promise<void>>();
 /** Track mtime of loaded user adapter files for hot-reload in daemon mode. */
 const _moduleMtimes = new Map<string, number>();
 const _userClisDir = `${os.homedir()}/.opencli/clis/`;
+
+type TraceMode = 'off' | 'on' | 'retain-on-failure';
+
+function normalizeTraceMode(raw: unknown): TraceMode {
+  if (raw === undefined || raw === null || raw === '' || raw === 'off') return 'off';
+  if (raw === 'on' || raw === 'retain-on-failure') return raw;
+  throw new ArgumentError(`--trace must be one of: off, on, retain-on-failure. Received: "${String(raw)}"`);
+}
 
 export function coerceAndValidateArgs(cmdArgs: Arg[], kwargs: CommandArgs): CommandArgs {
   const result: CommandArgs = { ...kwargs };
@@ -170,7 +179,12 @@ export async function executeCommand(
   cmd: CliCommand,
   rawKwargs: CommandArgs,
   debug: boolean = false,
-  opts: { prepared?: boolean; profile?: string } = {},
+  opts: {
+    prepared?: boolean;
+    profile?: string;
+    trace?: string;
+    onTraceExport?: (trace: ObservationExportResult) => void;
+  } = {},
 ): Promise<unknown> {
   let kwargs: CommandArgs;
   try {
@@ -180,6 +194,8 @@ export async function executeCommand(
     throw new ArgumentError(getErrorMessage(err));
   }
 
+  const traceMode = normalizeTraceMode(opts.trace);
+
   const hookCtx: HookContext = {
     command: fullName(cmd),
     args: kwargs,
@@ -188,7 +204,6 @@ export async function executeCommand(
   await emitHook('onBeforeExecute', hookCtx);
 
   let result: unknown;
-  let diagnosticEmitted = false;
   try {
     if (shouldUseBrowserSession(cmd)) {
       const electron = isElectronApp(cmd.site);
@@ -214,9 +229,37 @@ export async function executeCommand(
       ensureRequiredEnv(cmd);
       const BrowserFactory = getBrowserFactory(cmd.site);
       const contextId = resolveProfileContextId(opts.profile);
+      const internal = cmd as InternalCliCommand;
       result = await browserSession(BrowserFactory, async (page) => {
+        const observation = traceMode === 'off'
+          ? null
+          : new ObservationSession({
+            scope: {
+              contextId,
+              workspace: `site:${cmd.site}`,
+              target: page.getActivePage?.(),
+              site: cmd.site,
+              command: fullName(cmd),
+              adapterSourcePath: resolveAdapterSourcePath(internal),
+            },
+          });
+        if (observation) {
+          observation.record({
+            stream: 'action',
+            name: 'command',
+            phase: 'start',
+            data: { args: kwargs },
+          });
+          await page.startNetworkCapture?.().catch(() => false);
+        }
         const preNavUrl = resolvePreNav(cmd);
         if (preNavUrl) {
+          observation?.record({
+            stream: 'action',
+            name: 'pre_navigate',
+            phase: 'start',
+            data: { url: preNavUrl },
+          });
           // Navigate directly — the extension's handleNavigate already has a fast-path
           // that skips navigation if the tab is already at the target URL.
           // This avoids an extra exec round-trip (getCurrentUrl) on first command and
@@ -224,11 +267,35 @@ export async function executeCommand(
           // instead of about:blank.
           try {
             await page.goto(preNavUrl);
+            observation?.record({
+              stream: 'action',
+              name: 'pre_navigate',
+              phase: 'end',
+              data: { url: preNavUrl },
+            });
           } catch (err) {
-            throw new CommandExecutionError(
+            observation?.record({
+              stream: 'action',
+              name: 'pre_navigate',
+              phase: 'error',
+              data: { url: preNavUrl, error: err instanceof Error ? err.message : String(err) },
+            });
+            const wrapped = new CommandExecutionError(
               `Pre-navigation to ${preNavUrl} failed: ${err instanceof Error ? err.message : err}`,
               'Check that the site is reachable and the browser extension is running.',
             );
+            if (observation && (traceMode === 'on' || traceMode === 'retain-on-failure')) {
+              observation.record({
+                stream: 'error',
+                message: wrapped.message,
+                stack: wrapped.stack,
+                code: wrapped.code,
+                hint: wrapped.hint,
+              });
+              await collectObservationEvidence(observation, page).catch(() => {});
+              exportTraceArtifact(observation, 'failure', wrapped, opts.onTraceExport);
+            }
+            throw wrapped;
           }
         }
         // --live / OPENCLI_LIVE=1 keeps the automation window open after the
@@ -239,17 +306,36 @@ export async function executeCommand(
             timeout: cmd.timeoutSeconds ?? DEFAULT_BROWSER_COMMAND_TIMEOUT,
             label: fullName(cmd),
           });
+          observation?.record({
+            stream: 'action',
+            name: 'command',
+            phase: 'end',
+          });
+          if (observation && traceMode === 'on') {
+            await collectObservationEvidence(observation, page).catch(() => {});
+            exportTraceArtifact(observation, 'success', undefined, opts.onTraceExport);
+          }
           // Adapter commands are one-shot — close the automation window immediately
           // instead of waiting for the 30s idle timeout.
           if (!keepOpen) await page.closeWindow?.().catch(() => {});
           return result;
         } catch (err) {
-          // Collect diagnostic while page is still alive (before closing the window).
-          if (isDiagnosticEnabled()) {
-            const internal = cmd as InternalCliCommand;
-            const ctx = await collectDiagnostic(err, internal, page);
-            emitDiagnostic(ctx);
-            diagnosticEmitted = true;
+          if (observation) {
+            observation.record({
+              stream: 'action',
+              name: 'command',
+              phase: 'error',
+              data: { error: err instanceof Error ? err.message : String(err) },
+            });
+            observation.record({
+              stream: 'error',
+              message: err instanceof Error ? err.message : String(err),
+              stack: err instanceof Error ? err.stack : undefined,
+            });
+            if (traceMode === 'on' || traceMode === 'retain-on-failure') {
+              await collectObservationEvidence(observation, page).catch(() => {});
+              exportTraceArtifact(observation, 'failure', err, opts.onTraceExport);
+            }
           }
           // Close the automation window on failure too — without this, the window
           // lingers until the extension's idle timer fires (unreliable on Windows
@@ -257,7 +343,7 @@ export async function executeCommand(
           if (!keepOpen) await page.closeWindow?.().catch(() => {});
           throw err;
         }
-      }, { workspace: `site:${cmd.site}`, cdpEndpoint, contextId });
+      }, { workspace: `site:${cmd.site}:${crypto.randomUUID()}`, cdpEndpoint, contextId });
     } else {
       // Non-browser commands: apply timeout only when explicitly configured.
       const timeout = cmd.timeoutSeconds;
@@ -272,13 +358,6 @@ export async function executeCommand(
       }
     }
   } catch (err) {
-    // Emit diagnostic if not already emitted (browser session emits with page state;
-    // this fallback covers non-browser commands and pre-session failures like BrowserConnectError).
-    if (isDiagnosticEnabled() && !diagnosticEmitted) {
-      const internal = cmd as InternalCliCommand;
-      const ctx = await collectDiagnostic(err, internal, null);
-      emitDiagnostic(ctx);
-    }
     hookCtx.error = err;
     hookCtx.finishedAt = Date.now();
     await emitHook('onAfterExecute', hookCtx);
@@ -288,6 +367,78 @@ export async function executeCommand(
   hookCtx.finishedAt = Date.now();
   await emitHook('onAfterExecute', hookCtx, result);
   return result;
+}
+
+async function collectObservationEvidence(session: ObservationSession, page: IPage): Promise<void> {
+  const target = page.getActivePage?.() ?? session.scope.target;
+  const [url, snapshot, networkEntries, consoleMessages, screenshot] = await Promise.all([
+    page.getCurrentUrl?.().catch(() => null) ?? Promise.resolve(null),
+    page.snapshot().catch(() => undefined),
+    page.readNetworkCapture?.().catch(() => []) ?? Promise.resolve([]),
+    page.consoleMessages('all').catch(() => []),
+    page.screenshot({ format: 'png' }).catch(() => undefined),
+  ]);
+
+  if (snapshot !== undefined || url !== undefined) {
+    session.record({ stream: 'state', url, target, snapshot, label: 'final' });
+  }
+  for (const entry of Array.isArray(networkEntries) ? networkEntries : []) {
+    const record = entry as Record<string, unknown>;
+    session.record({
+      stream: 'network',
+      url: String(record.url ?? ''),
+      method: typeof record.method === 'string' ? record.method : undefined,
+      status: typeof record.responseStatus === 'number' ? record.responseStatus : undefined,
+      contentType: typeof record.responseContentType === 'string' ? record.responseContentType : undefined,
+      size: typeof record.responseBodyFullSize === 'number' ? record.responseBodyFullSize : undefined,
+      requestHeaders: record.requestHeaders as Record<string, unknown> | undefined,
+      responseHeaders: record.responseHeaders as Record<string, unknown> | undefined,
+      requestBody: record.requestBodyPreview,
+      responseBody: record.responsePreview,
+      ts: typeof record.timestamp === 'number' ? record.timestamp : undefined,
+    });
+  }
+  for (const message of Array.isArray(consoleMessages) ? consoleMessages : []) {
+    if (message && typeof message === 'object') {
+      const record = message as Record<string, unknown>;
+      session.record({
+        stream: 'console',
+        level: String(record.type ?? record.level ?? 'log'),
+        text: String(record.text ?? record.message ?? ''),
+        ts: typeof record.timestamp === 'number' ? record.timestamp : undefined,
+      });
+    } else {
+      session.record({ stream: 'console', level: 'log', text: String(message) });
+    }
+  }
+  if (typeof screenshot === 'string' && screenshot) {
+    session.record({ stream: 'screenshot', format: 'png', data: screenshot, label: 'final' });
+  }
+}
+
+function exportTraceArtifact(
+  session: ObservationSession,
+  status: ObservationExportStatus,
+  error?: unknown,
+  onTraceExport?: (trace: ObservationExportResult) => void,
+): ObservationExportResult | undefined {
+  try {
+    const trace = exportObservationSession(session, { error, status });
+    if (status === 'failure' && error !== undefined) {
+      attachTraceReceipt(error, trace.receipt);
+    } else {
+      process.stderr.write(`OpenCLI trace artifact: ${trace.dir}\n`);
+    }
+    try {
+      onTraceExport?.(trace);
+    } catch (err) {
+      log.warn(`[trace] Trace export callback failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
+    return trace;
+  } catch (err) {
+    log.warn(`[trace] Failed to export trace artifact: ${err instanceof Error ? err.message : String(err)}`);
+    return undefined;
+  }
 }
 
 export function prepareCommandArgs(

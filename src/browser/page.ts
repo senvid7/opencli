@@ -294,6 +294,13 @@ export class Page extends BasePage {
     });
   }
 
+  async handleJavaScriptDialog(accept: boolean, promptText?: string): Promise<void> {
+    await this.cdp('Page.handleJavaScriptDialog', {
+      accept,
+      ...(promptText !== undefined && { promptText }),
+    });
+  }
+
   /** CDP native click fallback — called when JS el.click() fails */
   protected override async tryNativeClick(x: number, y: number): Promise<boolean> {
     try {
@@ -390,7 +397,7 @@ export class Page extends BasePage {
     let modifierFlags = 0;
     for (const mod of modifiers) {
       if (mod === 'Alt') modifierFlags |= 1;
-      if (mod === 'Ctrl') modifierFlags |= 2;
+      if (mod === 'Ctrl' || mod === 'Control') modifierFlags |= 2;
       if (mod === 'Meta') modifierFlags |= 4;
       if (mod === 'Shift') modifierFlags |= 8;
     }
