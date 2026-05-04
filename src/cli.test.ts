@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import yaml from 'js-yaml';
+import { cli, getRegistry, Strategy } from './registry.js';
 import { BrowserCommandError } from './browser/daemon-client.js';
 import type { IPage } from './types.js';
 import { TargetError } from './browser/target-errors.js';
@@ -76,6 +78,111 @@ describe('createProgram root help descriptions', () => {
 
     expect(descriptionFor(program, 'list')).toBe('List all available CLI commands');
     expect(descriptionFor(program, 'doctor')).toBe('Diagnose opencli browser bridge connectivity');
+  });
+
+  it('keeps site adapters out of root commands and lists sites in the root help tail', () => {
+    const registry = getRegistry();
+    const snapshot = new Map(registry);
+    registry.clear();
+    try {
+      cli({
+        site: 'bilibili',
+        name: 'hot',
+        access: 'read',
+        description: 'Bilibili hot videos',
+        strategy: Strategy.PUBLIC,
+        browser: false,
+      });
+      cli({
+        site: 'youtube',
+        name: 'search',
+        access: 'read',
+        description: 'Search YouTube',
+        strategy: Strategy.PUBLIC,
+        browser: false,
+      });
+
+      const program = createProgram('', '');
+      const help = program.helpInformation();
+
+      expect(help).toContain('Site adapters (2):');
+      expect(help).toContain('bilibili, youtube');
+      expect(help).toContain("opencli <site> --help -f yaml");
+      expect(help).not.toMatch(/\n  bilibili\s+hot/);
+      expect(help).not.toMatch(/\n  youtube\s+search/);
+    } finally {
+      registry.clear();
+      for (const [key, value] of snapshot) registry.set(key, value);
+    }
+  });
+
+  it('renders root structured help with built-ins and site adapter names', () => {
+    const registry = getRegistry();
+    const snapshot = new Map(registry);
+    const argv = process.argv;
+    registry.clear();
+    try {
+      cli({
+        site: 'bilibili',
+        name: 'hot',
+        access: 'read',
+        description: 'Bilibili hot videos',
+        strategy: Strategy.PUBLIC,
+        browser: false,
+      });
+
+      const program = createProgram('', '');
+      process.argv = ['node', 'opencli', '--help', '-f', 'yaml'];
+      const data = yaml.load(program.helpInformation()) as any;
+
+      expect(data.site_adapters.count).toBe(1);
+      expect(data.site_adapters.sites).toEqual(['bilibili']);
+      expect(data.commands.map((cmd: any) => cmd.name)).toContain('list');
+      expect(data.commands.map((cmd: any) => cmd.name)).not.toContain('bilibili');
+    } finally {
+      process.argv = argv;
+      registry.clear();
+      for (const [key, value] of snapshot) registry.set(key, value);
+    }
+  });
+
+  it('renders per-site structured help with all commands, access, args, and examples', () => {
+    const registry = getRegistry();
+    const snapshot = new Map(registry);
+    const argv = process.argv;
+    registry.clear();
+    try {
+      cli({
+        site: 'bilibili',
+        name: 'hot',
+        access: 'read',
+        description: 'Bilibili hot videos',
+        strategy: Strategy.PUBLIC,
+        browser: false,
+        args: [{ name: 'limit', type: 'int', default: 20, help: 'Number of videos' }],
+      });
+
+      const program = createProgram('', '');
+      const site = program.commands.find(cmd => cmd.name() === 'bilibili');
+      expect(site).toBeTruthy();
+      process.argv = ['node', 'opencli', 'bilibili', '--help', '-f', 'yaml'];
+      const data = yaml.load(site!.helpInformation()) as any;
+
+      expect(data.site).toBe('bilibili');
+      expect(data.commands).toMatchObject([
+        {
+          name: 'hot',
+          access: 'read',
+          description: 'Bilibili hot videos',
+          example: 'opencli bilibili hot -f yaml',
+          args: [{ name: 'limit', type: 'int', default: 20 }],
+        },
+      ]);
+    } finally {
+      process.argv = argv;
+      registry.clear();
+      for (const [key, value] of snapshot) registry.set(key, value);
+    }
   });
 });
 
@@ -250,6 +357,38 @@ describe('browser verify', () => {
       expect(fixture.args).toEqual(['opencli-verify']);
       expect(fixture.expect.columns).toEqual(['title']);
     } finally {
+      if (originalHome === undefined) delete process.env.HOME;
+      else process.env.HOME = originalHome;
+      if (originalUserProfile === undefined) delete process.env.USERPROFILE;
+      else process.env.USERPROFILE = originalUserProfile;
+      fs.rmSync(fakeHome, { recursive: true, force: true });
+    }
+  });
+
+  it('fails before fixture handling when output row shape is not agent-native', async () => {
+    const originalHome = process.env.HOME;
+    const originalUserProfile = process.env.USERPROFILE;
+    const fakeHome = fs.mkdtempSync(path.join(os.tmpdir(), 'opencli-browser-verify-shape-'));
+    process.env.HOME = fakeHome;
+    process.env.USERPROFILE = fakeHome;
+    mockExecFileSync.mockReturnValue(JSON.stringify([{ title: 'ok', author: { user_id: 'u1' } }]));
+    const consoleLogSpy = vi.mocked(console.log);
+    consoleLogSpy.mockClear();
+
+    try {
+      const adapterDir = path.join(fakeHome, '.opencli', 'clis', 'hn');
+      fs.mkdirSync(adapterDir, { recursive: true });
+      fs.writeFileSync(path.join(adapterDir, 'top.js'), 'export default {};\n', 'utf-8');
+
+      const program = createProgram('', '');
+      await program.parseAsync(['node', 'opencli', 'browser', 'verify', 'hn/top', '--no-fixture']);
+
+      expect(process.exitCode).toBe(1);
+      const output = consoleLogSpy.mock.calls.map((args) => args.join(' ')).join('\n');
+      expect(output).toContain('Adapter output violates row shape conventions');
+      expect(output).toContain('author.user_id');
+    } finally {
+      consoleLogSpy.mockClear();
       if (originalHome === undefined) delete process.env.HOME;
       else process.env.HOME = originalHome;
       if (originalUserProfile === undefined) delete process.env.USERPROFILE;

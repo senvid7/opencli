@@ -12,6 +12,8 @@ export interface ManifestEntry {
   name: string;
   aliases?: string[];
   description: string;
+  access: 'read' | 'write';
+  example?: string;
   domain?: string;
   strategy: string;
   browser: boolean;

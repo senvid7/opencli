@@ -19,6 +19,7 @@ import { PKG_VERSION } from './version.js';
 import { printCompletionScript } from './completion.js';
 import { loadExternalClis, executeExternalCli, installExternalCli, registerExternalCli, isBinaryInstalled } from './external.js';
 import { registerAllCommands } from './commanderAdapter.js';
+import { formatRootAdapterHelpText, installStructuredHelp, rootHelpData } from './help.js';
 import { EXIT_CODES, getErrorMessage, BrowserConnectError } from './errors.js';
 import { TargetError, type TargetErrorCode } from './browser/target-errors.js';
 import { resolveTargetJs, getTextResolvedJs, getValueResolvedJs, getAttributesResolvedJs, selectResolvedJs, isAutocompleteResolvedJs, clickResolvedJs, type ResolveOptions, type TargetMatchLevel } from './browser/target-resolver.js';
@@ -504,13 +505,14 @@ export function createProgram(BUILTIN_CLIS: string, USER_CLIS: string): Command 
               name: c.name,
               aliases: c.aliases?.join(', ') ?? '',
               description: c.description,
+              access: c.access,
               strategy: strategyLabel(c),
               browser: !!c.browser,
               args: formatArgSummary(c.args),
             }));
         renderOutput(rows, {
           fmt,
-          columns: ['command', 'site', 'name', 'aliases', 'description', 'strategy', 'browser', 'args',
+          columns: ['command', 'site', 'name', 'aliases', 'description', 'access', 'strategy', 'browser', 'args',
                      ...(isStructured ? ['columns', 'domain'] : [])],
           title: 'opencli/list',
           source: 'opencli list',
@@ -578,6 +580,29 @@ export function createProgram(BUILTIN_CLIS: string, USER_CLIS: string): Command 
       const r = await verifyClis({ builtinClis: BUILTIN_CLIS, userClis: USER_CLIS, target, smoke: opts.smoke });
       console.log(renderVerifyReport(r));
       process.exitCode = r.ok ? EXIT_CODES.SUCCESS : EXIT_CODES.GENERIC_ERROR;
+    });
+
+  program
+    .command('convention-audit')
+    .description('Scan adapters for agent-native convention violations')
+    .argument('[target]', 'site or site/name')
+    .option('--site <site>', 'Limit audit to one site')
+    .option('-f, --format <fmt>', 'Output format: table, json, yaml', 'table')
+    .option('--strict', 'Exit non-zero when violations are found', false)
+    .action(async (target, opts) => {
+      const { runConventionAudit, renderConventionAuditText } = await import('./convention-audit.js');
+      const report = runConventionAudit({
+        projectRoot: findPackageRoot(CLI_FILE),
+        target,
+        site: opts.site,
+      });
+      const fmt = String(opts.format ?? 'table').toLowerCase();
+      if (fmt === 'json' || fmt === 'yaml' || fmt === 'yml') {
+        renderOutput(report, { fmt });
+      } else {
+        console.log(renderConventionAuditText(report));
+      }
+      if (opts.strict && !report.ok) process.exitCode = EXIT_CODES.GENERIC_ERROR;
     });
 
   // ── Built-in: browser (browser control for Claude Code skill) ───────────────
@@ -1963,6 +1988,8 @@ cli({
   site: '${site}',
   name: '${command}',
   description: '', // TODO: describe what this command does
+  access: 'read',  // TODO: 'read' for queries, 'write' for remote/account state changes
+  example: 'opencli ${site} ${command} -f yaml',
   domain: '${domain}',
   strategy: Strategy.PUBLIC, // TODO: PUBLIC (no auth), COOKIE (needs login), UI (DOM interaction)
   browser: false,            // TODO: set true if needs browser
@@ -2012,7 +2039,7 @@ cli({
         }
 
         const { execFileSync } = await import('node:child_process');
-        const { loadFixture, writeFixture, deriveFixture, validateRows, fixturePath, expandFixtureArgs, parseSeedArgs } = await import('./browser/verify-fixture.js');
+        const { loadFixture, writeFixture, deriveFixture, validateRows, validateRowShape, fixturePath, expandFixtureArgs, parseSeedArgs } = await import('./browser/verify-fixture.js');
         const filePath = path.join(os.homedir(), '.opencli', 'clis', site, `${command}.js`);
         if (!fs.existsSync(filePath)) {
           console.error(`Adapter not found: ${filePath}`);
@@ -2078,6 +2105,21 @@ cli({
 
         console.log(renderVerifyPreview(rows));
         console.log(`\n  → ${rows.length} row${rows.length === 1 ? '' : 's'}`);
+
+        const shapeFailures = validateRowShape(rows);
+        if (shapeFailures.length > 0) {
+          console.log(`\n  ✗ Adapter output violates row shape conventions:`);
+          for (const f of shapeFailures.slice(0, 20)) {
+            const where = f.rowIndex !== undefined ? `row[${f.rowIndex}] ` : '';
+            console.log(`    - [${f.rule}] ${where}${f.detail}`);
+          }
+          if (shapeFailures.length > 20) {
+            console.log(`    ... and ${shapeFailures.length - 20} more failure(s)`);
+          }
+          console.log(`\n  Keep rows agent-native: <=12 top-level keys, nesting depth <=1, and id-shaped fields at top level.`);
+          process.exitCode = EXIT_CODES.GENERIC_ERROR;
+          return;
+        }
 
         // ── Fixture handling ───────────────────────────────────────────
         if (opts.writeFixture || opts.updateFixture) {
@@ -2669,8 +2711,13 @@ cli({
 
   const siteGroups = new Map<string, Command>();
   siteGroups.set('antigravity', antigravityCmd);
-  registerAllCommands(program, siteGroups);
+  const siteNames = registerAllCommands(program, siteGroups);
   applyRootSubcommandSummaries(program);
+  const siteNameSet = new Set(siteNames);
+  program.configureHelp({
+    visibleCommands: (command) => command.commands.filter(child => command !== program || !siteNameSet.has(child.name())),
+  });
+  installStructuredHelp(program, () => rootHelpData(program, siteNames), () => formatRootAdapterHelpText(siteNames));
 
   // ── Unknown command fallback ──────────────────────────────────────────────
   // Security: do NOT auto-discover and register arbitrary system binaries.

@@ -93,6 +93,7 @@ export default defineConfig({
                 { text: 'Facebook', link: '/adapters/browser/facebook' },
                 { text: 'Google', link: '/adapters/browser/google' },
                 { text: 'IMDb', link: '/adapters/browser/imdb' },
+                { text: 'Indeed', link: '/adapters/browser/indeed' },
                 { text: 'Instagram', link: '/adapters/browser/instagram' },
                 { text: 'JD.com', link: '/adapters/browser/jd' },
                 { text: 'Medium', link: '/adapters/browser/medium' },
@@ -107,6 +108,7 @@ export default defineConfig({
                 { text: 'Eastmoney', link: '/adapters/browser/eastmoney' },
                 { text: 'TDX', link: '/adapters/browser/tdx' },
                 { text: 'THS', link: '/adapters/browser/ths' },
+                { text: 'Dianping', link: '/adapters/browser/dianping' },
               ],
             },
             {
@@ -121,6 +123,7 @@ export default defineConfig({
                 { text: 'Xiaoyuzhou', link: '/adapters/browser/xiaoyuzhou' },
                 { text: 'Yahoo Finance', link: '/adapters/browser/yahoo-finance' },
                 { text: 'arXiv', link: '/adapters/browser/arxiv' },
+                { text: 'dblp', link: '/adapters/browser/dblp' },
                 { text: 'paperreview.ai', link: '/adapters/browser/paperreview' },
                 { text: 'Barchart', link: '/adapters/browser/barchart' },
                 { text: 'Hugging Face', link: '/adapters/browser/hf' },
@@ -158,6 +161,22 @@ export default defineConfig({
                 { text: 'YAML Adapter Guide (Deprecated)', link: '/developer/yaml-adapter' },
                 { text: 'TypeScript Adapter Guide', link: '/developer/ts-adapter' },
                 { text: 'AI Workflow', link: '/developer/ai-workflow' },
+              ],
+            },
+            {
+              text: 'Conventions',
+              items: [
+                { text: 'Listing↔Detail ID Pairing', link: '/conventions/listing-detail-id-pairing' },
+                { text: 'Convention Audit', link: '/conventions/convention-audit' },
+              ],
+            },
+          ],
+          '/conventions/': [
+            {
+              text: 'Conventions',
+              items: [
+                { text: 'Listing↔Detail ID Pairing', link: '/conventions/listing-detail-id-pairing' },
+                { text: 'Convention Audit', link: '/conventions/convention-audit' },
               ],
             },
           ],

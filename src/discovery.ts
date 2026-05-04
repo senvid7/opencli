@@ -123,6 +123,8 @@ async function loadFromManifest(manifestPath: string, clisDir: string): Promise<
         name: entry.name,
         aliases: entry.aliases,
         description: entry.description ?? '',
+        access: entry.access,
+        example: entry.example,
         domain: entry.domain,
         strategy: parseStrategy(entry.strategy),
         browser: entry.browser,
