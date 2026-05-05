@@ -11,7 +11,7 @@
 OpenCLI 可以用同一套 CLI 做三类事情：
 
 - **直接使用现成适配器**：B站、知乎、小红书、Twitter/X、Reddit、HackerNews 等 [100+ 站点](#内置命令) 开箱即用。
-- **让 AI Agent 操作任意网站**：在你的 AI Agent（Claude Code、Cursor 等）中安装 `opencli-adapter-author` skill，Agent 就能用你的已登录浏览器导航、点击、输入、提取任意网页内容。
+- **让 AI Agent 操作任意网站**：在你的 AI Agent（Claude Code、Cursor 等）中安装 `opencli-adapter-author` skill，Agent 就能用你的已登录浏览器导航、点击、输入/填充、提取任意网页内容。
 - **把新网站写成 CLI**：用 `opencli browser` 原语 + `opencli-adapter-author` skill，从站点侦察、API 发现、字段解码到 `opencli browser verify` 一条龙。
 
 除了网站能力，OpenCLI 还是一个 **CLI 枢纽**：你可以把 `gh`、`docker` 等本地工具统一注册到 `opencli` 下，也可以通过桌面端适配器控制 Cursor、Codex、Antigravity、ChatGPT、Notion 等 Electron 应用。
@@ -19,7 +19,7 @@ OpenCLI 可以用同一套 CLI 做三类事情：
 ## 亮点
 
 - **桌面应用控制** — 通过 CDP 直接在终端驱动 Electron 应用（Cursor、Codex、ChatGPT、Notion 等）。
-- **AI Agent 浏览器自动化** — 安装 `opencli-adapter-author` skill，你的 AI Agent 就能操作任意网站：导航、点击、输入、提取、截图——全部通过你的已登录 Chrome 会话完成。
+- **AI Agent 浏览器自动化** — 安装 `opencli-adapter-author` skill，你的 AI Agent 就能操作任意网站：导航、点击、输入/填充、提取、截图——全部通过你的已登录 Chrome 会话完成。
 - **网站 → CLI** — 把任何网站变成确定性 CLI：100+ 站点能力已注册，或用 `opencli-adapter-author` skill + `opencli browser verify` 自己写。
 - **账号安全** — 复用 Chrome/Chromium 登录态，凭证永远不会离开浏览器。
 - **面向 AI Agent** — 一个 skill 带你走完站点侦察、API 发现、字段解码、适配器编写、验证的全流程。
@@ -134,7 +134,7 @@ Agent 在内部自动处理所有 `opencli browser` 命令——你只需用自�
 - [`skills/opencli-usage/SKILL.md`](./skills/opencli-usage/SKILL.md) — 命令和站点参考
 - [`skills/smart-search/SKILL.md`](./skills/smart-search/SKILL.md) — 能力搜索
 
-`browser` 可用命令包括：`open`、`state`、`click`、`type`、`select`、`keys`、`wait`、`get`、`find`、`extract`、`frames`、`screenshot`、`scroll`、`back`、`eval`、`network`、`tab list`、`tab new`、`tab select`、`tab close`、`init`、`verify`、`close`。
+`browser` 可用命令包括：`open`、`state`、`click`、`type`、`fill`、`select`、`keys`、`wait`、`get`、`find`、`extract`、`frames`、`screenshot`、`scroll`、`back`、`eval`、`network`、`tab list`、`tab new`、`tab select`、`tab close`、`init`、`verify`、`close`。
 
 `opencli browser open <url>` 和 `opencli browser tab new [url]` 都会返回 target ID。`opencli browser tab list` 用来查看当前已存在 tab 的 target ID，再通过 `--tab <targetId>` 把命令明确路由到某个 tab。`tab new` 只会新建 tab，不会改变默认浏览器目标；只有显式执行 `tab select <targetId>`，才会把该 tab 设为后续未指定 target 的 `opencli browser ...` 命令的默认目标。
 
@@ -238,7 +238,7 @@ npm link
 | **hupu** | `hot` `search` `detail` `mentions` `reply` `like` `unlike` | 浏览器 |
 | **cursor** | `status` `send` `read` `new` `dump` `composer` `model` `extract-code` `ask` `screenshot` `history` `export` | 桌面端 |
 | **bilibili** | `hot` `search` `me` `favorite` `history` `feed` `subtitle` `video` `comments` `dynamic` `ranking` `following` `user-videos` `download` | 浏览器 |
-| **codex** | `status` `send` `read` `new` `dump` `extract-diff` `model` `ask` `screenshot` `history` `export` | 桌面端 |
+| **codex** | `status` `send` `read` `new` `dump` `extract-diff` `model` `ask` `screenshot` `projects` `history` `export` | 桌面端 |
 | **chatwise** | `status` `new` `send` `read` `ask` `model` `history` `export` `screenshot` | 桌面端 |
 | **doubao** | `status` `new` `send` `read` `ask` `history` `detail` `meeting-summary` `meeting-transcript` | 浏览器 |
 | **doubao-app** | `status` `new` `send` `read` `ask` `screenshot` `dump` | 桌面端 |
@@ -271,6 +271,7 @@ npm link
 | **devto** | `top` `tag` `user` | 公开 |
 | **dictionary** | `search` `synonyms` `examples` | 公开 |
 | **arxiv** | `search` `paper` | 公开 |
+| **pubmed** | `search` `article` `author` `citations` `related` | 公开 |
 | **openreview** | `search` `venue` `paper` `reviews` | 公开 |
 | **paperreview** | `submit` `review` `feedback` | 公开 |
 | **wikipedia** | `search` `summary` `random` `trending` | 公开 |
@@ -315,7 +316,7 @@ npm link
 | **pixiv** | `ranking` `search` `user` `illusts` `detail` `download` | 浏览器 |
 | **tiktok** | `explore` `search` `profile` `user` `following` `follow` `unfollow` `like` `unlike` `comment` `save` `unsave` `live` `notifications` `friends` | 浏览器 |
 | **bluesky** | `search` `trending` `user` `profile` `thread` `feeds` `followers` `following` `starter-packs` | 公开 |
-| **xianyu** | `search` `item` `chat` | 浏览器 |
+| **xianyu** | `search` `item` `chat` `publish` | 浏览器 |
 | **douyin** | `videos` `publish` `drafts` `draft` `delete` `stats` `profile` `update` `hashtag` `location` `activities` `collections` | 浏览器 |
 | **yuanbao** | `new` `ask` | 浏览器 |
 

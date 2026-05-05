@@ -116,6 +116,93 @@ describe('createProgram root help descriptions', () => {
     }
   });
 
+  it('groups adapters into App / Site buckets by domain field', () => {
+    const registry = getRegistry();
+    const snapshot = new Map(registry);
+    registry.clear();
+    try {
+      cli({
+        site: 'bilibili',
+        name: 'hot',
+        access: 'read',
+        description: 'Bilibili hot videos',
+        domain: 'www.bilibili.com',
+        strategy: Strategy.PUBLIC,
+        browser: false,
+      });
+      cli({
+        site: 'chatwise',
+        name: 'ask',
+        access: 'write',
+        description: 'Ask Chatwise desktop app',
+        domain: 'localhost',
+        strategy: Strategy.UI,
+        browser: true,
+      });
+
+      const program = createProgram('', '');
+      const help = program.helpInformation();
+
+      // Two separate sections, each with own count
+      expect(help).toContain('App adapters (1):');
+      expect(help).toMatch(/App adapters \(1\):\n {2}chatwise/);
+      expect(help).toContain('Site adapters (1):');
+      expect(help).toMatch(/Site adapters \(1\):\n {2}bilibili/);
+
+      // App adapters appear before Site adapters (External CLIs are absent here)
+      expect(help.indexOf('App adapters')).toBeLessThan(help.indexOf('Site adapters'));
+    } finally {
+      registry.clear();
+      for (const [key, value] of snapshot) registry.set(key, value);
+    }
+  });
+
+  it('exposes external_clis / app_adapters / site_adapters in structured help', () => {
+    const registry = getRegistry();
+    const snapshot = new Map(registry);
+    const argv = process.argv;
+    registry.clear();
+    try {
+      cli({
+        site: 'bilibili',
+        name: 'hot',
+        access: 'read',
+        description: 'Bilibili hot videos',
+        domain: 'www.bilibili.com',
+        strategy: Strategy.PUBLIC,
+        browser: false,
+      });
+      cli({
+        site: 'chatwise',
+        name: 'ask',
+        access: 'write',
+        description: 'Ask Chatwise desktop app',
+        domain: 'localhost',
+        strategy: Strategy.UI,
+        browser: true,
+      });
+
+      const program = createProgram('', '');
+      process.argv = ['node', 'opencli', '--help', '-f', 'yaml'];
+      const data = yaml.load(program.helpInformation()) as any;
+
+      expect(data.app_adapters.count).toBe(1);
+      expect(data.app_adapters.apps).toEqual(['chatwise']);
+      expect(data.site_adapters.count).toBe(1);
+      expect(data.site_adapters.sites).toEqual(['bilibili']);
+      expect(data.external_clis.count).toBeGreaterThanOrEqual(0);
+      expect(Array.isArray(data.external_clis.clis)).toBe(true);
+      // Adapters must NOT leak into the core commands list
+      const commandNames = data.commands.map((cmd: any) => cmd.name);
+      expect(commandNames).not.toContain('bilibili');
+      expect(commandNames).not.toContain('chatwise');
+    } finally {
+      process.argv = argv;
+      registry.clear();
+      for (const [key, value] of snapshot) registry.set(key, value);
+    }
+  });
+
   it('renders root structured help with built-ins and site adapter names', () => {
     const registry = getRegistry();
     const snapshot = new Map(registry);
@@ -1912,6 +1999,16 @@ describe('browser click/type commands', () => {
     evaluate: vi.fn().mockResolvedValue(false),
     click: vi.fn().mockResolvedValue({ matches_n: 1, match_level: 'exact' }),
     typeText: vi.fn().mockResolvedValue({ matches_n: 1, match_level: 'exact' }),
+    fillText: vi.fn().mockResolvedValue({
+      filled: true,
+      verified: true,
+      expected: '',
+      actual: '',
+      length: 0,
+      matches_n: 1,
+      match_level: 'exact',
+      mode: 'input',
+    }),
     wait: vi.fn().mockResolvedValue(undefined),
   }));
 
@@ -2038,6 +2135,71 @@ describe('browser click/type commands', () => {
 
     expect(browserState.page!.click).toHaveBeenCalledWith('.field', { nth: 3 });
     expect(browserState.page!.typeText).toHaveBeenCalledWith('.field', 'x', { nth: 3 });
+  });
+
+  it('fill: delegates exact raw text to page.fillText and emits verification details', async () => {
+    (browserState.page!.fillText as any).mockResolvedValueOnce({
+      filled: true,
+      verified: true,
+      expected: 'line1\\n/ / raw',
+      actual: 'line1\\n/ / raw',
+      length: 14,
+      matches_n: 1,
+      match_level: 'exact',
+      mode: 'textarea',
+    });
+    const program = createProgram('', '');
+
+    await program.parseAsync(['node', 'opencli', 'browser', 'fill', '#msg', 'line1\\n/ / raw']);
+
+    expect(browserState.page!.fillText).toHaveBeenCalledWith('#msg', 'line1\\n/ / raw', {});
+    expect(lastJsonLog()).toEqual({
+      filled: true,
+      verified: true,
+      target: '#msg',
+      text: 'line1\\n/ / raw',
+      actual: 'line1\\n/ / raw',
+      length: 14,
+      matches_n: 1,
+      match_level: 'exact',
+      mode: 'textarea',
+    });
+    expect(process.exitCode).toBeUndefined();
+  });
+
+  it('fill: sets a non-zero exit code when verification fails', async () => {
+    (browserState.page!.fillText as any).mockResolvedValueOnce({
+      filled: true,
+      verified: false,
+      expected: 'expected',
+      actual: 'actual',
+      length: 6,
+      matches_n: 1,
+      match_level: 'exact',
+    });
+    const program = createProgram('', '');
+
+    await program.parseAsync(['node', 'opencli', 'browser', 'fill', '#msg', 'expected']);
+
+    expect(lastJsonLog()).toEqual({
+      filled: true,
+      verified: false,
+      target: '#msg',
+      text: 'expected',
+      actual: 'actual',
+      length: 6,
+      matches_n: 1,
+      match_level: 'exact',
+    });
+    expect(process.exitCode).toBeDefined();
+  });
+
+  it('fill: forwards --nth to page.fillText', async () => {
+    const program = createProgram('', '');
+
+    await program.parseAsync(['node', 'opencli', 'browser', 'fill', '.field', 'x', '--nth', '2']);
+
+    expect(browserState.page!.fillText).toHaveBeenCalledWith('.field', 'x', { nth: 2 });
   });
 });
 

@@ -163,6 +163,341 @@
     "navigateBefore": false
   },
   {
+    "site": "1point3acres",
+    "name": "digest",
+    "description": "一亩三分地 精华帖（编辑推荐 / 加精）",
+    "access": "read",
+    "domain": "www.1point3acres.com",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "返回条数（默认 20，最多 50）"
+      }
+    ],
+    "columns": [
+      "rank",
+      "tid",
+      "title",
+      "forum",
+      "author",
+      "replies",
+      "views",
+      "lastReplyTime",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "1point3acres/digest.js",
+    "sourceFile": "1point3acres/digest.js"
+  },
+  {
+    "site": "1point3acres",
+    "name": "forum",
+    "description": "浏览一亩三分地某个版块的帖子列表（按 fid）",
+    "access": "read",
+    "domain": "www.1point3acres.com",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "fid",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "版块 ID，例如 145（海外面经）、198（海外职位内推）、27（研究生申请）"
+      },
+      {
+        "name": "page",
+        "type": "int",
+        "default": 1,
+        "required": false,
+        "help": "页码（默认 1）"
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "返回条数（默认 20，最多 50）"
+      }
+    ],
+    "columns": [
+      "rank",
+      "tid",
+      "kind",
+      "title",
+      "author",
+      "replies",
+      "views",
+      "lastReplyTime",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "1point3acres/forum.js",
+    "sourceFile": "1point3acres/forum.js"
+  },
+  {
+    "site": "1point3acres",
+    "name": "forums",
+    "description": "一亩三分地 所有版块（fid + 版块名）",
+    "access": "read",
+    "domain": "www.1point3acres.com",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "filter",
+        "type": "string",
+        "default": "",
+        "required": false,
+        "help": "按版块名关键字过滤（子串匹配，中英文）"
+      }
+    ],
+    "columns": [
+      "fid",
+      "name",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "1point3acres/forums.js",
+    "sourceFile": "1point3acres/forums.js"
+  },
+  {
+    "site": "1point3acres",
+    "name": "hot",
+    "description": "一亩三分地 今日热门帖子（按热度排序，约 50 条）",
+    "access": "read",
+    "domain": "www.1point3acres.com",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "返回条数（默认 20，最多 50）"
+      }
+    ],
+    "columns": [
+      "rank",
+      "tid",
+      "title",
+      "forum",
+      "author",
+      "replies",
+      "views",
+      "lastReplyTime",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "1point3acres/hot.js",
+    "sourceFile": "1point3acres/hot.js"
+  },
+  {
+    "site": "1point3acres",
+    "name": "latest",
+    "description": "一亩三分地 最新发帖（按发帖时间倒序）",
+    "access": "read",
+    "domain": "www.1point3acres.com",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "返回条数（默认 20，最多 50）"
+      }
+    ],
+    "columns": [
+      "rank",
+      "tid",
+      "title",
+      "forum",
+      "author",
+      "replies",
+      "views",
+      "postTime",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "1point3acres/latest.js",
+    "sourceFile": "1point3acres/latest.js"
+  },
+  {
+    "site": "1point3acres",
+    "name": "notifications",
+    "description": "一亩三分地 站内通知（互动 / 点评 / @ 我；需要登录）",
+    "access": "read",
+    "domain": "www.1point3acres.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "kind",
+        "type": "string",
+        "default": "mypost",
+        "required": false,
+        "help": "通知类型：mypost（我的帖子） / interactive（互动） / system（系统） / app（应用）"
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "返回条数"
+      }
+    ],
+    "columns": [
+      "index",
+      "from",
+      "summary",
+      "time",
+      "threadUrl"
+    ],
+    "type": "js",
+    "modulePath": "1point3acres/notifications.js",
+    "sourceFile": "1point3acres/notifications.js",
+    "navigateBefore": false
+  },
+  {
+    "site": "1point3acres",
+    "name": "search",
+    "description": "一亩三分地 站内关键字搜索（需要登录）",
+    "access": "read",
+    "domain": "www.1point3acres.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "query",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "搜索关键字"
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "返回条数（默认 20，最多 50）"
+      },
+      {
+        "name": "fid",
+        "type": "string",
+        "default": "",
+        "required": false,
+        "help": "限定版块 ID（可选）"
+      }
+    ],
+    "columns": [
+      "rank",
+      "tid",
+      "title",
+      "forum",
+      "author",
+      "replies",
+      "views",
+      "postTime",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "1point3acres/search.js",
+    "sourceFile": "1point3acres/search.js",
+    "navigateBefore": false
+  },
+  {
+    "site": "1point3acres",
+    "name": "thread",
+    "description": "一亩三分地 帖子详情 + 楼层（主楼 + 回复）",
+    "access": "read",
+    "domain": "www.1point3acres.com",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "tid",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "帖子 ID（数字，见 `hot`/`latest` 返回的 tid）"
+      },
+      {
+        "name": "page",
+        "type": "int",
+        "default": 1,
+        "required": false,
+        "help": "楼层分页页码（默认 1）"
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 10,
+        "required": false,
+        "help": "返回楼层条数（默认 10，含主楼）"
+      },
+      {
+        "name": "contentLimit",
+        "type": "int",
+        "default": 400,
+        "required": false,
+        "help": "每楼正文截断长度（默认 400 字符，最少 50）"
+      }
+    ],
+    "columns": [
+      "floor",
+      "pid",
+      "author",
+      "postTime",
+      "content",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "1point3acres/thread.js",
+    "sourceFile": "1point3acres/thread.js"
+  },
+  {
+    "site": "1point3acres",
+    "name": "user",
+    "description": "一亩三分地 用户空间（用户组 / 积分 / 大米 / 帖子数 等）",
+    "access": "read",
+    "domain": "www.1point3acres.com",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "who",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "用户名或 uid（纯数字按 uid 查，否则按用户名）"
+      }
+    ],
+    "columns": [
+      "uid",
+      "username",
+      "group",
+      "credits",
+      "rice",
+      "posts",
+      "threads",
+      "digests",
+      "registerTime",
+      "lastAccess",
+      "profileUrl"
+    ],
+    "type": "js",
+    "modulePath": "1point3acres/user.js",
+    "sourceFile": "1point3acres/user.js"
+  },
+  {
     "site": "36kr",
     "name": "article",
     "description": "获取36氪文章正文内容",
@@ -544,6 +879,32 @@
     "modulePath": "51job/search.js",
     "sourceFile": "51job/search.js",
     "navigateBefore": false
+  },
+  {
+    "site": "aibase",
+    "name": "news",
+    "description": "AIbase 日报 - 每天三分钟关注AI行业趋势",
+    "access": "read",
+    "domain": "www.aibase.com",
+    "strategy": "public",
+    "browser": true,
+    "args": [
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "Number of news items to return (max 50)"
+      }
+    ],
+    "columns": [
+      "rank",
+      "title",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "aibase/news.js",
+    "sourceFile": "aibase/news.js"
   },
   {
     "site": "amazon",
@@ -1051,6 +1412,41 @@
     "type": "js",
     "modulePath": "apple-podcasts/top.js",
     "sourceFile": "apple-podcasts/top.js"
+  },
+  {
+    "site": "arxiv",
+    "name": "author",
+    "description": "List arXiv papers by a given author (newest first)",
+    "access": "read",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "author",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "Author name (e.g. \"Yoshua Bengio\" or \"Y Bengio\")"
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "Max papers to return (max 50)"
+      }
+    ],
+    "columns": [
+      "id",
+      "title",
+      "authors",
+      "published",
+      "primary_category",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "arxiv/author.js",
+    "sourceFile": "arxiv/author.js"
   },
   {
     "site": "arxiv",
@@ -4272,7 +4668,7 @@
   {
     "site": "codex",
     "name": "ask",
-    "description": "Send a prompt and wait for the AI response (send + wait + read)",
+    "description": "Send a prompt to the current or selected Codex conversation and wait for the AI response",
     "access": "write",
     "domain": "localhost",
     "strategy": "ui",
@@ -4291,10 +4687,36 @@
         "default": "60",
         "required": false,
         "help": "Max seconds to wait for response (default: 60)"
+      },
+      {
+        "name": "project",
+        "type": "str",
+        "required": false,
+        "help": "Project label or path to select before running the command"
+      },
+      {
+        "name": "conversation",
+        "type": "str",
+        "required": false,
+        "help": "Conversation title to select within --project"
+      },
+      {
+        "name": "index",
+        "type": "str",
+        "required": false,
+        "help": "1-based conversation index within --project"
+      },
+      {
+        "name": "thread-id",
+        "type": "str",
+        "required": false,
+        "help": "Exact Codex thread id to select"
       }
     ],
     "columns": [
       "Role",
+      "Project",
+      "Conversation",
       "Text"
     ],
     "type": "js",
@@ -4349,15 +4771,31 @@
   {
     "site": "codex",
     "name": "history",
-    "description": "List recent conversation threads in Codex",
+    "description": "List visible Codex conversation threads grouped by project",
     "access": "read",
     "domain": "localhost",
     "strategy": "ui",
     "browser": true,
-    "args": [],
+    "args": [
+      {
+        "name": "project",
+        "type": "str",
+        "required": false,
+        "help": "Filter by project label or path"
+      },
+      {
+        "name": "limit",
+        "type": "str",
+        "required": false,
+        "help": "Max conversations per project"
+      }
+    ],
     "columns": [
+      "Project",
       "Index",
-      "Title"
+      "Title",
+      "Updated",
+      "Active"
     ],
     "type": "js",
     "modulePath": "codex/history.js",
@@ -4392,14 +4830,75 @@
   },
   {
     "site": "codex",
-    "name": "read",
-    "description": "Read the contents of the current Codex conversation thread",
+    "name": "projects",
+    "description": "List Codex projects and visible conversations from the sidebar",
     "access": "read",
     "domain": "localhost",
     "strategy": "ui",
     "browser": true,
-    "args": [],
+    "args": [
+      {
+        "name": "project",
+        "type": "str",
+        "required": false,
+        "help": "Filter by project label or path"
+      },
+      {
+        "name": "limit",
+        "type": "str",
+        "required": false,
+        "help": "Max conversations per project"
+      }
+    ],
     "columns": [
+      "Project",
+      "Index",
+      "Title",
+      "Updated",
+      "Active"
+    ],
+    "type": "js",
+    "modulePath": "codex/projects.js",
+    "sourceFile": "codex/projects.js",
+    "navigateBefore": true
+  },
+  {
+    "site": "codex",
+    "name": "read",
+    "description": "Read the contents of the current or selected Codex conversation thread",
+    "access": "read",
+    "domain": "localhost",
+    "strategy": "ui",
+    "browser": true,
+    "args": [
+      {
+        "name": "project",
+        "type": "str",
+        "required": false,
+        "help": "Project label or path to select before running the command"
+      },
+      {
+        "name": "conversation",
+        "type": "str",
+        "required": false,
+        "help": "Conversation title to select within --project"
+      },
+      {
+        "name": "index",
+        "type": "str",
+        "required": false,
+        "help": "1-based conversation index within --project"
+      },
+      {
+        "name": "thread-id",
+        "type": "str",
+        "required": false,
+        "help": "Exact Codex thread id to select"
+      }
+    ],
+    "columns": [
+      "Project",
+      "Conversation",
       "Content"
     ],
     "type": "js",
@@ -4410,7 +4909,7 @@
   {
     "site": "codex",
     "name": "send",
-    "description": "Send text/commands to the Codex AI composer",
+    "description": "Send text/commands to the current or selected Codex AI composer",
     "access": "write",
     "domain": "localhost",
     "strategy": "ui",
@@ -4422,16 +4921,152 @@
         "required": true,
         "positional": true,
         "help": "Text, command (e.g. /review), or skill (e.g. $imagegen)"
+      },
+      {
+        "name": "project",
+        "type": "str",
+        "required": false,
+        "help": "Project label or path to select before running the command"
+      },
+      {
+        "name": "conversation",
+        "type": "str",
+        "required": false,
+        "help": "Conversation title to select within --project"
+      },
+      {
+        "name": "index",
+        "type": "str",
+        "required": false,
+        "help": "1-based conversation index within --project"
+      },
+      {
+        "name": "thread-id",
+        "type": "str",
+        "required": false,
+        "help": "Exact Codex thread id to select"
       }
     ],
     "columns": [
       "Status",
+      "Project",
+      "Conversation",
       "InjectedText"
     ],
     "type": "js",
     "modulePath": "codex/send.js",
     "sourceFile": "codex/send.js",
     "navigateBefore": true
+  },
+  {
+    "site": "coingecko",
+    "name": "coin",
+    "description": "Fetch a single cryptocurrency's market data by CoinGecko id (e.g. bitcoin, ethereum).",
+    "access": "read",
+    "domain": "api.coingecko.com",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "positional": true,
+        "help": "CoinGecko coin id (lowercase, e.g. bitcoin / ethereum / solana)."
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "default": "usd",
+        "required": false,
+        "help": "Quote currency (usd, cny, eur, jpy, ...)."
+      }
+    ],
+    "columns": [
+      "id",
+      "symbol",
+      "name",
+      "rank",
+      "price",
+      "marketCap",
+      "volume24h",
+      "change24hPct",
+      "change7dPct",
+      "change30dPct",
+      "ath",
+      "athDate",
+      "atl",
+      "atlDate",
+      "circulatingSupply",
+      "totalSupply",
+      "maxSupply",
+      "genesisDate",
+      "homepage"
+    ],
+    "type": "js",
+    "modulePath": "coingecko/coin.js",
+    "sourceFile": "coingecko/coin.js"
+  },
+  {
+    "site": "coingecko",
+    "name": "top",
+    "description": "按市值排序的加密货币行情（默认 USD）",
+    "access": "read",
+    "domain": "api.coingecko.com",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "currency",
+        "type": "string",
+        "default": "usd",
+        "required": false,
+        "help": "计价币种 (usd / cny / eur / jpy ...)"
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 10,
+        "required": false,
+        "help": "返回数量（默认 10，最多 250）"
+      }
+    ],
+    "columns": [
+      "rank",
+      "symbol",
+      "name",
+      "price",
+      "change24hPct",
+      "marketCap",
+      "volume24h",
+      "high24h",
+      "low24h"
+    ],
+    "type": "js",
+    "modulePath": "coingecko/top.js",
+    "sourceFile": "coingecko/top.js"
+  },
+  {
+    "site": "coingecko",
+    "name": "trending",
+    "description": "Top trending cryptocurrencies on CoinGecko in the last 24h (search-volume based).",
+    "access": "read",
+    "domain": "api.coingecko.com",
+    "strategy": "public",
+    "browser": false,
+    "args": [],
+    "columns": [
+      "rank",
+      "id",
+      "symbol",
+      "name",
+      "marketCapRank",
+      "priceBtc",
+      "thumb"
+    ],
+    "type": "js",
+    "modulePath": "coingecko/trending.js",
+    "sourceFile": "coingecko/trending.js"
   },
   {
     "site": "coupang",
@@ -8753,6 +9388,101 @@
     "type": "js",
     "modulePath": "hackernews/user.js",
     "sourceFile": "hackernews/user.js"
+  },
+  {
+    "site": "hf",
+    "name": "datasets",
+    "description": "Top Hugging Face datasets (downloads / likes / trending / freshness).",
+    "access": "read",
+    "domain": "huggingface.co",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "sort",
+        "type": "string",
+        "default": "downloads",
+        "required": false,
+        "help": "Sort key: downloads, likes, trending, created_at, last_modified"
+      },
+      {
+        "name": "search",
+        "type": "string",
+        "required": false,
+        "help": "Optional name/owner substring filter."
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "Max datasets (max 100; one API page)."
+      }
+    ],
+    "columns": [
+      "rank",
+      "id",
+      "author",
+      "downloads",
+      "likes",
+      "tags",
+      "lastModified",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "hf/datasets.js",
+    "sourceFile": "hf/datasets.js"
+  },
+  {
+    "site": "hf",
+    "name": "models",
+    "description": "Top Hugging Face models (downloads / likes / trending / freshness).",
+    "access": "read",
+    "domain": "huggingface.co",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "sort",
+        "type": "string",
+        "default": "downloads",
+        "required": false,
+        "help": "Sort key: downloads, likes, trending, created_at, last_modified"
+      },
+      {
+        "name": "search",
+        "type": "string",
+        "required": false,
+        "help": "Optional name/owner substring filter (e.g. \"llama\", \"mistralai/\")"
+      },
+      {
+        "name": "pipeline",
+        "type": "string",
+        "required": false,
+        "help": "Filter by pipeline tag (e.g. text-generation, image-classification)"
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "Max models (max 100; one API page)."
+      }
+    ],
+    "columns": [
+      "rank",
+      "id",
+      "author",
+      "pipelineTag",
+      "downloads",
+      "likes",
+      "tags",
+      "lastModified",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "hf/models.js",
+    "sourceFile": "hf/models.js"
   },
   {
     "site": "hf",
@@ -14679,6 +15409,329 @@
     "sourceFile": "producthunt/today.js"
   },
   {
+    "site": "pubmed",
+    "name": "article",
+    "aliases": [
+      "paper",
+      "read"
+    ],
+    "description": "Get detailed information for a PubMed article by PMID",
+    "access": "read",
+    "domain": "pubmed.ncbi.nlm.nih.gov",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "pmid",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "PubMed ID, e.g. 37780221"
+      },
+      {
+        "name": "full-abstract",
+        "type": "boolean",
+        "default": false,
+        "required": false,
+        "help": "Do not truncate the abstract in table output"
+      }
+    ],
+    "columns": [
+      "field",
+      "value"
+    ],
+    "type": "js",
+    "modulePath": "pubmed/article.js",
+    "sourceFile": "pubmed/article.js"
+  },
+  {
+    "site": "pubmed",
+    "name": "author",
+    "description": "Search PubMed articles by author name and optional affiliation",
+    "access": "read",
+    "domain": "pubmed.ncbi.nlm.nih.gov",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "name",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "Author name, e.g. \"Smith J\""
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "Max results (1-100)"
+      },
+      {
+        "name": "affiliation",
+        "type": "str",
+        "required": false,
+        "help": "Filter by author affiliation"
+      },
+      {
+        "name": "position",
+        "type": "str",
+        "default": "any",
+        "required": false,
+        "help": "Author position: any, first, or last",
+        "choices": [
+          "any",
+          "first",
+          "last"
+        ]
+      },
+      {
+        "name": "year-from",
+        "type": "int",
+        "required": false,
+        "help": "Filter publication year from"
+      },
+      {
+        "name": "year-to",
+        "type": "int",
+        "required": false,
+        "help": "Filter publication year to"
+      },
+      {
+        "name": "sort",
+        "type": "str",
+        "default": "date",
+        "required": false,
+        "help": "Sort by date or relevance",
+        "choices": [
+          "date",
+          "relevance"
+        ]
+      }
+    ],
+    "columns": [
+      "rank",
+      "pmid",
+      "title",
+      "authors",
+      "journal",
+      "year",
+      "article_type",
+      "doi",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "pubmed/author.js",
+    "sourceFile": "pubmed/author.js"
+  },
+  {
+    "site": "pubmed",
+    "name": "citations",
+    "description": "Get PubMed citation relationships for an article",
+    "access": "read",
+    "domain": "pubmed.ncbi.nlm.nih.gov",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "pmid",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "PubMed ID, e.g. 37780221"
+      },
+      {
+        "name": "direction",
+        "type": "str",
+        "default": "citedby",
+        "required": false,
+        "help": "citedby or references",
+        "choices": [
+          "citedby",
+          "references"
+        ]
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "Max results (1-100)"
+      }
+    ],
+    "columns": [
+      "rank",
+      "pmid",
+      "title",
+      "authors",
+      "journal",
+      "year",
+      "article_type",
+      "doi",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "pubmed/citations.js",
+    "sourceFile": "pubmed/citations.js"
+  },
+  {
+    "site": "pubmed",
+    "name": "related",
+    "description": "Find articles related to a PubMed article",
+    "access": "read",
+    "domain": "pubmed.ncbi.nlm.nih.gov",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "pmid",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "PubMed ID, e.g. 37780221"
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "Max results (1-100)"
+      },
+      {
+        "name": "score",
+        "type": "boolean",
+        "default": false,
+        "required": false,
+        "help": "Show similarity scores when available"
+      }
+    ],
+    "columns": [
+      "rank",
+      "pmid",
+      "title",
+      "authors",
+      "journal",
+      "year",
+      "article_type",
+      "score",
+      "doi",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "pubmed/related.js",
+    "sourceFile": "pubmed/related.js"
+  },
+  {
+    "site": "pubmed",
+    "name": "search",
+    "description": "Search PubMed articles with advanced filters",
+    "access": "read",
+    "domain": "pubmed.ncbi.nlm.nih.gov",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "query",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "Search query, e.g. \"machine learning cancer\""
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "Max results (1-100)"
+      },
+      {
+        "name": "author",
+        "type": "str",
+        "required": false,
+        "help": "Filter by author name"
+      },
+      {
+        "name": "journal",
+        "type": "str",
+        "required": false,
+        "help": "Filter by journal name"
+      },
+      {
+        "name": "year-from",
+        "type": "int",
+        "required": false,
+        "help": "Filter publication year from"
+      },
+      {
+        "name": "year-to",
+        "type": "int",
+        "required": false,
+        "help": "Filter publication year to"
+      },
+      {
+        "name": "article-type",
+        "type": "str",
+        "required": false,
+        "help": "Filter by publication type, e.g. Review or Clinical Trial"
+      },
+      {
+        "name": "has-abstract",
+        "type": "boolean",
+        "default": false,
+        "required": false,
+        "help": "Only include articles with abstracts"
+      },
+      {
+        "name": "free-full-text",
+        "type": "boolean",
+        "default": false,
+        "required": false,
+        "help": "Only include free full text articles"
+      },
+      {
+        "name": "humans-only",
+        "type": "boolean",
+        "default": false,
+        "required": false,
+        "help": "Only include human studies"
+      },
+      {
+        "name": "english-only",
+        "type": "boolean",
+        "default": false,
+        "required": false,
+        "help": "Only include English articles"
+      },
+      {
+        "name": "sort",
+        "type": "str",
+        "default": "relevance",
+        "required": false,
+        "help": "Sort by relevance, date, author, or journal",
+        "choices": [
+          "relevance",
+          "date",
+          "author",
+          "journal"
+        ]
+      }
+    ],
+    "columns": [
+      "rank",
+      "pmid",
+      "title",
+      "authors",
+      "journal",
+      "year",
+      "article_type",
+      "doi",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "pubmed/search.js",
+    "sourceFile": "pubmed/search.js"
+  },
+  {
     "site": "quark",
     "name": "ls",
     "description": "List files in your Quark Drive",
@@ -14936,6 +15989,263 @@
     "modulePath": "quark/share-tree.js",
     "sourceFile": "quark/share-tree.js",
     "navigateBefore": "https://pan.quark.cn"
+  },
+  {
+    "site": "qwen",
+    "name": "ask",
+    "description": "Send a prompt to Qianwen and return the assistant reply",
+    "access": "write",
+    "domain": "www.qianwen.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "prompt",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "Prompt to send to Qianwen"
+      },
+      {
+        "name": "timeout",
+        "type": "int",
+        "default": 120,
+        "required": false,
+        "help": "Max seconds to wait for the response"
+      },
+      {
+        "name": "new",
+        "type": "boolean",
+        "default": false,
+        "required": false,
+        "help": "Start a new chat before sending"
+      },
+      {
+        "name": "think",
+        "type": "boolean",
+        "default": false,
+        "required": false,
+        "help": "Enable 深度思考 (DeepThink)"
+      },
+      {
+        "name": "research",
+        "type": "boolean",
+        "default": false,
+        "required": false,
+        "help": "Enable 深度研究 (DeepResearch)"
+      },
+      {
+        "name": "markdown",
+        "type": "boolean",
+        "default": false,
+        "required": false,
+        "help": "Emit assistant reply as markdown"
+      }
+    ],
+    "columns": [
+      "Role",
+      "Text"
+    ],
+    "timeout": 240,
+    "type": "js",
+    "modulePath": "qwen/ask.js",
+    "sourceFile": "qwen/ask.js",
+    "navigateBefore": false
+  },
+  {
+    "site": "qwen",
+    "name": "history",
+    "description": "List recent Qianwen conversations (requires login)",
+    "access": "read",
+    "domain": "www.qianwen.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "Max conversations to show (default 20, max 100)"
+      }
+    ],
+    "columns": [
+      "Index",
+      "Title",
+      "Updated",
+      "Url"
+    ],
+    "type": "js",
+    "modulePath": "qwen/history.js",
+    "sourceFile": "qwen/history.js",
+    "navigateBefore": false
+  },
+  {
+    "site": "qwen",
+    "name": "image",
+    "description": "Generate images with Qianwen (AI生图) and save them locally",
+    "access": "write",
+    "domain": "www.qianwen.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "prompt",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "Image prompt to send"
+      },
+      {
+        "name": "op",
+        "type": "str",
+        "default": "~/Pictures/qianwen",
+        "required": false,
+        "help": "Output directory"
+      },
+      {
+        "name": "new",
+        "type": "boolean",
+        "default": true,
+        "required": false,
+        "help": "Start a new chat before generating (default: true)"
+      },
+      {
+        "name": "sd",
+        "type": "boolean",
+        "default": false,
+        "required": false,
+        "help": "Skip download; only show the Qianwen link"
+      },
+      {
+        "name": "timeout",
+        "type": "int",
+        "default": 180,
+        "required": false,
+        "help": "Max seconds to wait for the image response"
+      }
+    ],
+    "columns": [
+      "Status",
+      "File",
+      "Link"
+    ],
+    "timeout": 300,
+    "type": "js",
+    "modulePath": "qwen/image.js",
+    "sourceFile": "qwen/image.js",
+    "navigateBefore": false
+  },
+  {
+    "site": "qwen",
+    "name": "new",
+    "description": "Start a new conversation in Qianwen",
+    "access": "write",
+    "domain": "www.qianwen.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [],
+    "columns": [
+      "Status"
+    ],
+    "type": "js",
+    "modulePath": "qwen/new.js",
+    "sourceFile": "qwen/new.js",
+    "navigateBefore": false
+  },
+  {
+    "site": "qwen",
+    "name": "read",
+    "description": "Read messages in the current Qianwen conversation",
+    "access": "read",
+    "domain": "www.qianwen.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "markdown",
+        "type": "boolean",
+        "default": false,
+        "required": false,
+        "help": "Emit assistant replies as markdown"
+      }
+    ],
+    "columns": [
+      "Role",
+      "Text"
+    ],
+    "type": "js",
+    "modulePath": "qwen/read.js",
+    "sourceFile": "qwen/read.js",
+    "navigateBefore": false
+  },
+  {
+    "site": "qwen",
+    "name": "send",
+    "description": "Fire-and-forget: send a prompt to Qianwen without waiting for the reply",
+    "access": "write",
+    "domain": "www.qianwen.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "prompt",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "Prompt to send to Qianwen"
+      },
+      {
+        "name": "new",
+        "type": "boolean",
+        "default": false,
+        "required": false,
+        "help": "Start a new chat before sending"
+      },
+      {
+        "name": "think",
+        "type": "boolean",
+        "default": false,
+        "required": false,
+        "help": "Enable 深度思考 (DeepThink)"
+      },
+      {
+        "name": "research",
+        "type": "boolean",
+        "default": false,
+        "required": false,
+        "help": "Enable 深度研究 (DeepResearch)"
+      }
+    ],
+    "columns": [
+      "Status",
+      "Prompt"
+    ],
+    "type": "js",
+    "modulePath": "qwen/send.js",
+    "sourceFile": "qwen/send.js",
+    "navigateBefore": false
+  },
+  {
+    "site": "qwen",
+    "name": "status",
+    "description": "Check Qianwen page availability, login state, current session and model",
+    "access": "read",
+    "domain": "www.qianwen.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [],
+    "columns": [
+      "Status",
+      "Login",
+      "Model",
+      "SessionId",
+      "Url"
+    ],
+    "type": "js",
+    "modulePath": "qwen/status.js",
+    "sourceFile": "qwen/status.js",
+    "navigateBefore": false
   },
   {
     "site": "reddit",
@@ -16237,6 +17547,55 @@
   },
   {
     "site": "stackoverflow",
+    "name": "tag",
+    "description": "List Stack Overflow questions tagged with a given tag (most active first).",
+    "access": "read",
+    "domain": "stackoverflow.com",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "tag",
+        "type": "string",
+        "required": true,
+        "positional": true,
+        "help": "Tag slug (e.g. python, rust, typescript)."
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "default": "activity",
+        "required": false,
+        "help": "Sort key: activity, votes, creation, hot, week, month"
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "Max questions to return (max 100)."
+      }
+    ],
+    "columns": [
+      "rank",
+      "id",
+      "title",
+      "score",
+      "answers",
+      "views",
+      "isAnswered",
+      "tags",
+      "author",
+      "createdAt",
+      "lastActivityAt",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "stackoverflow/tag.js",
+    "sourceFile": "stackoverflow/tag.js"
+  },
+  {
+    "site": "stackoverflow",
     "name": "unanswered",
     "description": "Top voted unanswered questions on Stack Overflow",
     "access": "read",
@@ -16267,6 +17626,46 @@
     "type": "js",
     "modulePath": "stackoverflow/unanswered.js",
     "sourceFile": "stackoverflow/unanswered.js"
+  },
+  {
+    "site": "stackoverflow",
+    "name": "user",
+    "description": "Find Stack Overflow users by display name (highest reputation first).",
+    "access": "read",
+    "domain": "stackoverflow.com",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true,
+        "positional": true,
+        "help": "Display name (or substring) to search."
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 10,
+        "required": false,
+        "help": "Max users to return (max 100)."
+      }
+    ],
+    "columns": [
+      "userId",
+      "displayName",
+      "reputation",
+      "goldBadges",
+      "silverBadges",
+      "bronzeBadges",
+      "location",
+      "createdAt",
+      "lastAccessAt",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "stackoverflow/user.js",
+    "sourceFile": "stackoverflow/user.js"
   },
   {
     "site": "steam",
@@ -16853,6 +18252,46 @@
     "modulePath": "tiktok/comment.js",
     "sourceFile": "tiktok/comment.js",
     "navigateBefore": "https://www.tiktok.com"
+  },
+  {
+    "site": "tiktok",
+    "name": "creator-videos",
+    "description": "TikTok Studio creator content list (views/likes/comments/saves/shares)",
+    "access": "read",
+    "domain": "www.tiktok.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "Number of creator videos to return (max 250)"
+      },
+      {
+        "name": "cursor",
+        "type": "string",
+        "default": "0",
+        "required": false,
+        "help": "Non-negative TikTok Studio pagination cursor"
+      }
+    ],
+    "columns": [
+      "video_id",
+      "title",
+      "date",
+      "views",
+      "likes",
+      "comments",
+      "saves",
+      "shares",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "tiktok/creator-videos.js",
+    "sourceFile": "tiktok/creator-videos.js",
+    "navigateBefore": "https://www.tiktok.com/tiktokstudio/content"
   },
   {
     "site": "tiktok",
@@ -17552,7 +18991,7 @@
     "description": "Get accounts following a Twitter/X user",
     "access": "read",
     "domain": "x.com",
-    "strategy": "intercept",
+    "strategy": "ui",
     "browser": true,
     "args": [
       {
@@ -17573,8 +19012,7 @@
     "columns": [
       "screen_name",
       "name",
-      "bio",
-      "followers"
+      "bio"
     ],
     "type": "js",
     "modulePath": "twitter/followers.js",
@@ -18318,6 +19756,33 @@
     "modulePath": "twitter/unfollow.js",
     "sourceFile": "twitter/unfollow.js",
     "navigateBefore": true
+  },
+  {
+    "site": "uisdc",
+    "name": "news",
+    "description": "优设读报 - 最新 AI/设计行业新闻",
+    "access": "read",
+    "domain": "www.uisdc.com",
+    "strategy": "public",
+    "browser": true,
+    "args": [
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "Number of news items to return (max 50)"
+      }
+    ],
+    "columns": [
+      "rank",
+      "title",
+      "summary",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "uisdc/news.js",
+    "sourceFile": "uisdc/news.js"
   },
   {
     "site": "uiverse",
@@ -19264,6 +20729,49 @@
     "navigateBefore": false
   },
   {
+    "site": "weixin",
+    "name": "search",
+    "description": "使用搜狗微信搜索公众号文章；如需导出正文 Markdown，请使用 weixin download 处理公众号文章链接",
+    "access": "read",
+    "domain": "weixin.sogou.com",
+    "strategy": "public",
+    "browser": true,
+    "args": [
+      {
+        "name": "query",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "搜索关键词；如需正文 Markdown，请使用 weixin download 处理公众号文章链接"
+      },
+      {
+        "name": "page",
+        "type": "int",
+        "default": 1,
+        "required": false,
+        "help": "结果页码，从 1 开始"
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 10,
+        "required": false,
+        "help": "返回条数，最大 10"
+      }
+    ],
+    "columns": [
+      "rank",
+      "page",
+      "title",
+      "url",
+      "summary",
+      "publish_time"
+    ],
+    "type": "js",
+    "modulePath": "weixin/search.js",
+    "sourceFile": "weixin/search.js"
+  },
+  {
     "site": "weread",
     "name": "ai-outline",
     "description": "Get AI-generated outline for a book",
@@ -19527,6 +21035,49 @@
   },
   {
     "site": "wikipedia",
+    "name": "page",
+    "description": "Full plain-text extract of a Wikipedia article (optional paragraph cap).",
+    "access": "read",
+    "domain": "wikipedia.org",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "title",
+        "type": "string",
+        "required": true,
+        "positional": true,
+        "help": "Article title (e.g. \"Transformer (machine learning model)\")"
+      },
+      {
+        "name": "lang",
+        "type": "string",
+        "default": "en",
+        "required": false,
+        "help": "Language code (en, zh, ja, de, ...)."
+      },
+      {
+        "name": "paragraphs",
+        "type": "int",
+        "default": 0,
+        "required": false,
+        "help": "Cap to first N paragraphs (0 = full article)."
+      }
+    ],
+    "columns": [
+      "title",
+      "description",
+      "pageId",
+      "paragraphs",
+      "extract",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "wikipedia/page.js",
+    "sourceFile": "wikipedia/page.js"
+  },
+  {
+    "site": "wikipedia",
     "name": "random",
     "description": "Get a random Wikipedia article",
     "access": "read",
@@ -19729,6 +21280,83 @@
     "type": "js",
     "modulePath": "xianyu/item.js",
     "sourceFile": "xianyu/item.js",
+    "navigateBefore": false
+  },
+  {
+    "site": "xianyu",
+    "name": "publish",
+    "description": "发布闲鱼宝贝（需先在浏览器中登录闲鱼）",
+    "access": "write",
+    "domain": "www.goofish.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "title",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "商品标题"
+      },
+      {
+        "name": "description",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "商品描述/详情"
+      },
+      {
+        "name": "price",
+        "type": "float",
+        "required": true,
+        "positional": true,
+        "help": "出售价格（元）"
+      },
+      {
+        "name": "condition",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "成色：全新 / 几乎全新 / 轻微使用 / 明显使用 / 老旧"
+      },
+      {
+        "name": "category",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "商品分类关键词（如：手机、衣服、图书）"
+      },
+      {
+        "name": "original_price",
+        "type": "float",
+        "required": false,
+        "help": "原价（选填，用于显示折扣）"
+      },
+      {
+        "name": "location",
+        "type": "str",
+        "required": false,
+        "help": "所在地区（选填，如：杭州）"
+      },
+      {
+        "name": "images",
+        "type": "str",
+        "required": false,
+        "help": "本地图片路径，多张用逗号分隔（选填，如：/tmp/a.jpg,/tmp/b.jpg）"
+      }
+    ],
+    "columns": [
+      "status",
+      "item_id",
+      "title",
+      "price",
+      "condition",
+      "url",
+      "message"
+    ],
+    "type": "js",
+    "modulePath": "xianyu/publish.js",
+    "sourceFile": "xianyu/publish.js",
     "navigateBefore": false
   },
   {
