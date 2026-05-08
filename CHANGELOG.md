@@ -5,9 +5,13 @@
 ### Features
 
 * **help / browser** — `opencli browser --help -f yaml|json` now emits a structured, agent-ready index of all browser leaf commands (including nested `tab`, `get`, and `dialog` commands), their positionals, command options, namespace options, and root global options. Individual browser commands also support structured help, backed by a shared Commander option/argument spec extractor.
+* **browser state** — add opt-in AX snapshot refs via `browser state --source ax`, including backend-node click resolution and role/name stale-ref recovery for the Phase 0 browser-agent runtime prototype.
+* **browser state** — AX snapshots now include same-origin iframe refs, and `browser state --compare-sources` prints DOM-vs-AX observation metrics for the Phase 1 default-source decision without dumping page contents.
 
 ### Bug Fixes
 
+* **browser click** — `browser click` now prefers CDP `Input.dispatchMouseEvent` over DOM `el.click()`, so custom dropdowns that depend on pointer/mouse events (Radix, shadcn, Material UI, Mercury-style category pickers) open and select reliably while retaining JS click as a fallback for older backends or zero-rect targets.
+* **browser state / extension 1.0.7** — `browser state --source ax` now enables the CDP Accessibility domain before reading the AX tree, fixing real-Chrome snapshots that previously returned only `RootWebArea` with zero refs.
 * **help / build** — every positional arg must now declare a non-empty `help` string. The build-manifest step fails closed when a positional has empty / whitespace-only / missing `help`, so `opencli <site> <cmd> --help` always shows callers what each parameter is for. Pre-existing offenders (`twitter followers/following/list-add/list-remove/list-tweets/search/thread`, `reddit search/subreddit/user/user-comments/user-posts`, `douyin stats/update`, `bilibili subtitle`, `jike search`) now have explicit help text — most notably `twitter followers [user]` and `following [user]` now document that omitting the user fetches the currently logged-in account.
 
 ## [1.7.14](https://github.com/jackwener/opencli/compare/v1.7.13...v1.7.14) (2026-05-08)
