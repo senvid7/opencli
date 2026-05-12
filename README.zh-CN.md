@@ -136,7 +136,7 @@ Agent 在内部自动处理所有 `opencli browser` 命令——你只需用自�
 
 `browser` 可用命令包括：`open`、`state`、`click`、`type`、`fill`、`select`、`keys`、`wait`、`get`、`find`、`extract`、`frames`、`screenshot`、`scroll`、`back`、`eval`、`network`、`tab list`、`tab new`、`tab select`、`tab close`、`init`、`verify`、`close`。
 
-`opencli browser` 命令必须显式传 `--session <name>`。`opencli browser --session work open <url>` 和 `opencli browser --session work tab new [url]` 都会返回 target ID。`opencli browser --session work tab list` 用来查看当前已存在 tab 的 target ID，再通过 `--tab <targetId>` 把命令明确路由到某个 tab。`tab new` 只会新建 tab，不会改变默认浏览器目标；只有显式执行 `tab select <targetId>`，才会把该 tab 设为同一 session 后续未指定 target 的默认目标。
+`opencli browser` 命令必须紧跟一个 `<session>` 位置参数。`opencli browser work open <url>` 和 `opencli browser work tab new [url]` 都会返回 target ID。`opencli browser work tab list` 用来查看当前已存在 tab 的 target ID，再通过 `--tab <targetId>` 把命令明确路由到某个 tab。`tab new` 只会新建 tab，不会改变默认浏览器目标；只有显式执行 `tab select <targetId>`，才会把该 tab 设为同一 session 后续未指定 target 的默认目标。
 
 ## 核心概念
 
@@ -144,7 +144,7 @@ Agent 在内部自动处理所有 `opencli browser` 命令——你只需用自�
 
 `opencli browser` 命令是 AI Agent 操作网站的底层原语。你不需要手动运行这些命令——把 `opencli-adapter-author` skill 安装到你的 AI Agent 中，用自然语言描述你想做的事，Agent 会自动处理浏览器操作。
 
-比如你告诉 Agent：*"帮我看看小红书的通知"*——Agent 会在底层调用 `opencli browser --session <name> open`、`state`、`click` 等命令。
+比如你告诉 Agent：*"帮我看看小红书的通知"*——Agent 会在底层调用 `opencli browser <session> open`、`state`、`click` 等命令。
 
 ### 内置适配器：稳定命令
 
@@ -158,7 +158,7 @@ Agent 在内部自动处理所有 `opencli browser` 命令——你只需用自�
 2. 发现目标 endpoint——network 精读、initial state、bundle 搜索、token 溯源，或 interceptor 兜底
 3. 定认证策略——`PUBLIC` / `COOKIE` / `INTERCEPT` / `UI` / `LOCAL`
 4. 字段解码 + 设计输出列
-5. `opencli browser --session recon analyze <url>` 一步侦察，再 `opencli browser --session recon init <site>/<name>` → 写适配器 → `opencli browser --session recon verify <site>/<name>`
+5. `opencli browser recon analyze <url>` 一步侦察，再 `opencli browser recon init <site>/<name>` → 写适配器 → `opencli browser recon verify <site>/<name>`
 6. 把站点知识沉到 `~/.opencli/sites/<site>/`，下次写同站点的其他命令直接吃缓存
 
 ### CLI 枢纽与桌面端适配器
@@ -182,7 +182,6 @@ OpenCLI 不只是网站 CLI，还可以：
 |------|--------|------|
 | `OPENCLI_DAEMON_PORT` | `19825` | daemon-extension 通信端口 |
 | `OPENCLI_WINDOW` | 命令默认值 | 设为 `foreground` 或 `background` 来覆盖 Browser Bridge 窗口位置。浏览器型命令也支持 `--window <foreground\|background>` |
-| `OPENCLI_KEEP_TAB` | 命令默认值 | 设为 `true` 或 `false` 来控制浏览器型 adapter 命令结束后是否保留 tab lease。浏览器型 adapter 命令也支持 `--keep-tab <true\|false>` |
 | `OPENCLI_BROWSER_CONNECT_TIMEOUT` | `30` | 浏览器连接超时（秒） |
 | `OPENCLI_BROWSER_COMMAND_TIMEOUT` | `60` | 单个浏览器命令超时（秒） |
 | `OPENCLI_CDP_ENDPOINT` | — | Chrome DevTools Protocol 端点，用于远程浏览器或 Electron 应用 |
@@ -190,7 +189,7 @@ OpenCLI 不只是网站 CLI，还可以：
 | `OPENCLI_VERBOSE` | `false` | 启用详细日志（`-v` 也可以） |
 | `DEBUG_SNAPSHOT` | — | 设为 `1` 输出 DOM 快照调试信息 |
 
-`opencli browser *` 必须显式传 `--session <name>`，默认使用前台窗口，并保留该 session 的 tab lease，直到你手动执行 `opencli browser --session <name> close` 或等空闲超时。浏览器型 adapter 默认使用后台 adapter 窗口并在命令结束后释放一次性 tab lease；如果需要调试最终页面，可以传 `--window foreground --keep-tab true`。
+`opencli browser *` 必须紧跟一个 `<session>` 位置参数，默认使用前台窗口，并保留该 session 的 tab lease，直到你手动执行 `opencli browser <session> close` 或等空闲超时。浏览器型 adapter 默认使用后台 adapter 窗口并在命令结束后释放一次性 tab lease；如果需要调试最终页面，可以传 `--window foreground --keep-tab true`。
 
 ## 更新
 
@@ -510,10 +509,10 @@ opencli plugin uninstall my-tool                            # 卸载
 在动代码前，先读 [`opencli-adapter-author` skill](./skills/opencli-adapter-author/SKILL.md)。它把整个流程串起来：
 
 - 侦察站点，选定 pattern（SPA / SSR / JSONP / Token / Streaming）
-- 用 `opencli browser --session <name> network`、`eval`、interceptor 等找到目标 endpoint
+- 用 `opencli browser <name> network`、`eval`、interceptor 等找到目标 endpoint
 - 定认证策略（`PUBLIC` / `COOKIE` / `INTERCEPT` / `UI` / `LOCAL`）
-- 先用 `opencli browser --session recon analyze <url>` 一步侦察，再字段解码、设计 columns、`opencli browser --session recon init` 生成骨架
-- 交付前用 `opencli browser --session recon verify <site>/<name>` 验证
+- 先用 `opencli browser recon analyze <url>` 一步侦察，再字段解码、设计 columns、`opencli browser recon init` 生成骨架
+- 交付前用 `opencli browser recon verify <site>/<name>` 验证
 
 在仓库外写的私有适配器放到 `~/.opencli/clis/<site>/<name>.js`；每个站点的 endpoint、字段映射、抓包样本会累积在 `~/.opencli/sites/<site>/`，下次写同站点的其他命令可以直接复用。
 
