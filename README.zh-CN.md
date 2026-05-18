@@ -12,7 +12,7 @@
 OpenCLI 可以用同一套 CLI 做三类事情：
 
 - **直接使用现成适配器**：B站、知乎、小红书、Twitter/X、Reddit、HackerNews 等 [100+ 站点](#内置命令) 开箱即用。
-- **让 AI Agent 操作任意网站**：在你的 AI Agent（Claude Code、Cursor 等）中安装 `opencli-adapter-author` skill，Agent 就能用你的已登录浏览器导航、点击、输入/填充、提取任意网页内容。
+- **让 AI Agent 操作任意网站**：在你的 AI Agent（Claude Code、Cursor 等）中安装 `opencli-browser` skill，Agent 就能用你的已登录浏览器导航、点击、输入/填充、提取任意网页内容。
 - **把新网站写成 CLI**：用 `opencli browser` 原语 + `opencli-adapter-author` skill，从站点侦察、API 发现、字段解码到 `opencli browser verify` 一条龙。
 
 除了网站能力，OpenCLI 还是一个 **CLI 枢纽**：你可以把 `gh`、`docker`、`longbridge`、`tg`、`discord`、`wx`、`ntn`（Notion）等本地工具统一注册到 `opencli` 下，也可以通过桌面端适配器控制 Cursor、Codex、Antigravity、ChatGPT 等 Electron 应用。
@@ -140,7 +140,7 @@ Agent 在内部自动处理所有 `opencli browser` 命令——你只需用自�
 
 ### `browser`：AI Agent 的浏览器控制层
 
-`opencli browser` 命令是 AI Agent 操作网站的底层原语。你不需要手动运行这些命令——把 `opencli-adapter-author` skill 安装到你的 AI Agent 中，用自然语言描述你想做的事，Agent 会自动处理浏览器操作。
+`opencli browser` 命令是 AI Agent 操作网站的底层原语。你不需要手动运行这些命令——把 `opencli-browser` skill 安装到你的 AI Agent 中，用自然语言描述你想做的事，Agent 会自动处理浏览器操作。
 
 比如你告诉 Agent：*"帮我看看小红书的通知"*——Agent 会在底层调用 `opencli browser <session> open`、`state`、`click` 等命令。
 
@@ -279,7 +279,7 @@ npm link
 | **reuters** | `search` | 浏览器 |
 | **smzdm** | `search` | 浏览器 |
 | **web** | `read` | 浏览器 |
-| **weibo** | `hot` `search` `feed` `user` `user-posts` `me` `post` `comments` | 浏览器 |
+| **weibo** | `hot` `search` `feed` `user` `user-posts` `me` `post` `favorites` `publish` `delete` `comments` | 浏览器 |
 | **yahoo-finance** | `quote` | 浏览器 |
 | **sinafinance** | `news` | 🌐 公开 |
 | **barchart** | `quote` `options` `greeks` `flow` | 浏览器 |
@@ -314,7 +314,7 @@ npm link
 | **pixiv** | `ranking` `search` `user` `illusts` `detail` `download` | 浏览器 |
 | **tiktok** | `explore` `search` `profile` `user` `following` `follow` `unfollow` `like` `unlike` `comment` `save` `unsave` `live` `notifications` `friends` | 浏览器 |
 | **bluesky** | `search` `trending` `user` `profile` `thread` `feeds` `followers` `following` `starter-packs` | 公开 |
-| **xianyu** | `search` `item` `chat` `publish` | 浏览器 |
+| **xianyu** | `search` `item` `inbox` `messages` `chat` `reply` `publish` | 浏览器 |
 | **douyin** | `videos` `publish` `drafts` `draft` `delete` `stats` `profile` `update` `hashtag` `location` `activities` `collections` | 浏览器 |
 | **yuanbao** | `new` `ask` | 浏览器 |
 
