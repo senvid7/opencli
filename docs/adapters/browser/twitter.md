@@ -15,6 +15,7 @@
 | `opencli twitter following` | |
 | `opencli twitter followers` | |
 | `opencli twitter notifications` | |
+| `opencli twitter device-follow` | Read the /i/timeline device-follow notification stream (tweets aggregated under a bell-icon "new posts from @userA and N others" notification) |
 | `opencli twitter post` | |
 | `opencli twitter reply` | |
 | `opencli twitter delete` | |
@@ -22,6 +23,7 @@
 | `opencli twitter likes` | |
 | `opencli twitter lists` | |
 | `opencli twitter list-tweets` | |
+| `opencli twitter list-create` | Create a Twitter/X list via GraphQL and return the created list id |
 | `opencli twitter list-add` | |
 | `opencli twitter list-remove` | |
 | `opencli twitter article` | |
@@ -61,6 +63,11 @@ opencli twitter download @elonmusk --limit 50 --output ./twitter-media
 
 # Download media from a single tweet
 opencli twitter download --tweet-url https://x.com/jack/status/20 --output ./twitter-media
+
+# Create a list and then manage members (requires login)
+opencli twitter list-create "AI research" --description "Papers and labs" --mode private
+opencli twitter list-add 123456789 alice
+opencli twitter list-remove 123456789 alice
 
 # Write actions (require login). Idempotent — calling twice is safe.
 opencli twitter like https://x.com/jack/status/20

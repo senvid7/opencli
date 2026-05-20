@@ -2297,8 +2297,56 @@
   },
   {
     "site": "bilibili",
+    "name": "comment",
+    "description": "在 B站视频下发表评论或回复（官方 API，需登录；消息里的 @用户 会被解析为真实提及）",
+    "access": "write",
+    "domain": "www.bilibili.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "bvid",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "Video BV ID / URL / b23.tv short link"
+      },
+      {
+        "name": "message",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "Comment text. Any @username in it is resolved to a real mention"
+      },
+      {
+        "name": "parent",
+        "type": "int",
+        "required": false,
+        "help": "top-level/root rpid to reply under (omit for a top-level comment)"
+      },
+      {
+        "name": "execute",
+        "type": "boolean",
+        "required": false,
+        "help": "Actually post the comment. Without it the command refuses to write."
+      }
+    ],
+    "columns": [
+      "rpid",
+      "bvid",
+      "oid",
+      "message",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "bilibili/comment.js",
+    "sourceFile": "bilibili/comment.js",
+    "navigateBefore": "https://www.bilibili.com"
+  },
+  {
+    "site": "bilibili",
     "name": "comments",
-    "description": "获取 B站视频评论（使用官方 API + WBI 签名）",
+    "description": "获取 B站视频评论（官方 API；用 --parent <rpid> 读取某条评论下的「楼中楼」回复）",
     "access": "read",
     "domain": "www.bilibili.com",
     "strategy": "cookie",
@@ -2312,6 +2360,12 @@
         "help": "Video BV ID (e.g. BV1WtAGzYEBm)"
       },
       {
+        "name": "parent",
+        "type": "int",
+        "required": false,
+        "help": "rpid of a comment — fetch the replies under it instead of top-level comments"
+      },
+      {
         "name": "limit",
         "type": "int",
         "default": 20,
@@ -2321,6 +2375,7 @@
     ],
     "columns": [
       "rank",
+      "rpid",
       "author",
       "text",
       "likes",
@@ -2732,6 +2787,7 @@
     "name": "subtitle",
     "description": "获取 Bilibili 视频的字幕",
     "access": "read",
+    "domain": "www.bilibili.com",
     "strategy": "cookie",
     "browser": true,
     "args": [
@@ -2758,7 +2814,7 @@
     "type": "js",
     "modulePath": "bilibili/subtitle.js",
     "sourceFile": "bilibili/subtitle.js",
-    "navigateBefore": true
+    "navigateBefore": "https://www.bilibili.com"
   },
   {
     "site": "bilibili",
@@ -3762,6 +3818,101 @@
     "type": "js",
     "modulePath": "bluesky/user.js",
     "sourceFile": "bluesky/user.js"
+  },
+  {
+    "site": "booking",
+    "name": "search",
+    "description": "Search Booking.com hotels by destination and dates (server-rendered card scrape).",
+    "access": "read",
+    "example": "opencli booking search Tokyo --checkin 2026-06-15 --checkout 2026-06-17 -f yaml",
+    "domain": "www.booking.com",
+    "strategy": "public",
+    "browser": true,
+    "args": [
+      {
+        "name": "destination",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "Destination keyword (city, district, or hotel name)"
+      },
+      {
+        "name": "checkin",
+        "type": "str",
+        "required": true,
+        "help": "Check-in date YYYY-MM-DD"
+      },
+      {
+        "name": "checkout",
+        "type": "str",
+        "required": true,
+        "help": "Check-out date YYYY-MM-DD"
+      },
+      {
+        "name": "adults",
+        "type": "int",
+        "default": 2,
+        "required": false,
+        "help": "Number of adults (1-30)"
+      },
+      {
+        "name": "rooms",
+        "type": "int",
+        "default": 1,
+        "required": false,
+        "help": "Number of rooms (1-30)"
+      },
+      {
+        "name": "children",
+        "type": "int",
+        "default": 0,
+        "required": false,
+        "help": "Number of children (0-10)"
+      },
+      {
+        "name": "currency",
+        "type": "str",
+        "required": false,
+        "help": "Force result currency (e.g. USD, JPY, CNY)"
+      },
+      {
+        "name": "lang",
+        "type": "str",
+        "required": false,
+        "help": "Force result language (e.g. en-us, zh-cn, ja)"
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 25,
+        "required": false,
+        "help": "Max rows to return (1-100; Booking pages 25 per request)"
+      },
+      {
+        "name": "offset",
+        "type": "int",
+        "default": 0,
+        "required": false,
+        "help": "Result offset for pagination (multiple of 25)"
+      }
+    ],
+    "columns": [
+      "rank",
+      "name",
+      "country",
+      "slug",
+      "star_rating",
+      "review_score",
+      "review_count",
+      "price_amount",
+      "price_currency",
+      "distance",
+      "recommended_room",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "booking/search.js",
+    "sourceFile": "booking/search.js"
   },
   {
     "site": "boss",
@@ -5142,6 +5293,143 @@
     "navigateBefore": true
   },
   {
+    "site": "chess",
+    "name": "analyze",
+    "description": "Open a Chess.com game in the browser analysis board",
+    "access": "read",
+    "domain": "www.chess.com",
+    "strategy": "ui",
+    "browser": true,
+    "args": [
+      {
+        "name": "game-url",
+        "type": "string",
+        "required": true,
+        "positional": true,
+        "help": "Full game URL, e.g. https://www.chess.com/game/live/168842570216"
+      }
+    ],
+    "columns": [
+      "kind",
+      "game_id",
+      "analysis_url"
+    ],
+    "type": "js",
+    "modulePath": "chess/analyze.js",
+    "sourceFile": "chess/analyze.js",
+    "navigateBefore": false
+  },
+  {
+    "site": "chess",
+    "name": "game",
+    "description": "Chess.com single-game detail (white, black, result, ECO, time control) by full game URL",
+    "access": "read",
+    "domain": "www.chess.com",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "game-url",
+        "type": "string",
+        "required": true,
+        "positional": true,
+        "help": "Full game URL, e.g. https://www.chess.com/game/live/168842570216"
+      }
+    ],
+    "columns": [
+      "kind",
+      "game_id",
+      "date",
+      "white",
+      "white_rating",
+      "black",
+      "black_rating",
+      "result",
+      "winner_color",
+      "termination",
+      "eco",
+      "time_control",
+      "rated",
+      "ply_count",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "chess/game.js",
+    "sourceFile": "chess/game.js"
+  },
+  {
+    "site": "chess",
+    "name": "games",
+    "description": "Chess.com recent games for a player, newest first",
+    "access": "read",
+    "domain": "api.chess.com",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "username",
+        "type": "string",
+        "required": true,
+        "positional": true,
+        "help": "Chess.com username"
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 10,
+        "required": false,
+        "help": "Number of recent games (1-100)"
+      }
+    ],
+    "columns": [
+      "date",
+      "time_class",
+      "rated",
+      "my_color",
+      "my_rating",
+      "my_result",
+      "opponent",
+      "opponent_rating",
+      "accuracy_white",
+      "accuracy_black",
+      "eco",
+      "opening_name",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "chess/games.js",
+    "sourceFile": "chess/games.js"
+  },
+  {
+    "site": "chess",
+    "name": "stats",
+    "description": "Chess.com player ratings + win/loss record across game kinds",
+    "access": "read",
+    "domain": "api.chess.com",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "username",
+        "type": "string",
+        "required": true,
+        "positional": true,
+        "help": "Chess.com username (case-insensitive)"
+      }
+    ],
+    "columns": [
+      "kind",
+      "rating_current",
+      "rating_best",
+      "wins",
+      "losses",
+      "draws"
+    ],
+    "type": "js",
+    "modulePath": "chess/stats.js",
+    "sourceFile": "chess/stats.js"
+  },
+  {
     "site": "claude",
     "name": "ask",
     "description": "Send a prompt to Claude and get the response",
@@ -6022,6 +6310,208 @@
     "type": "js",
     "modulePath": "coingecko/trending.js",
     "sourceFile": "coingecko/trending.js"
+  },
+  {
+    "site": "confluence",
+    "name": "create",
+    "description": "Create a Confluence page from Markdown or storage XHTML",
+    "access": "write",
+    "domain": "atlassian.net",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "space",
+        "type": "string",
+        "required": true,
+        "help": "Cloud space id, or Data Center space key"
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "required": true,
+        "help": "Page title"
+      },
+      {
+        "name": "file",
+        "type": "string",
+        "required": true,
+        "help": "Markdown file path"
+      },
+      {
+        "name": "parent",
+        "type": "string",
+        "required": false,
+        "help": "Optional parent page id"
+      },
+      {
+        "name": "representation",
+        "type": "string",
+        "default": "markdown",
+        "required": false,
+        "help": "Input file format",
+        "choices": [
+          "markdown",
+          "storage"
+        ]
+      },
+      {
+        "name": "execute",
+        "type": "boolean",
+        "required": false,
+        "help": "Actually create the remote page"
+      }
+    ],
+    "columns": [
+      "status",
+      "id",
+      "title",
+      "spaceId",
+      "spaceKey",
+      "version",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "confluence/create.js",
+    "sourceFile": "confluence/create.js"
+  },
+  {
+    "site": "confluence",
+    "name": "page",
+    "description": "Confluence page by id with storage and Markdown body",
+    "access": "read",
+    "domain": "atlassian.net",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "id",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "Confluence page id"
+      }
+    ],
+    "columns": [
+      "id",
+      "title",
+      "status",
+      "spaceId",
+      "spaceKey",
+      "version",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "confluence/page.js",
+    "sourceFile": "confluence/page.js"
+  },
+  {
+    "site": "confluence",
+    "name": "search",
+    "description": "Search Confluence content with CQL",
+    "access": "read",
+    "domain": "atlassian.net",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "cql",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "CQL query, e.g. \"type = page and title ~ \\\"RCA\\\"\""
+      },
+      {
+        "name": "space",
+        "type": "string",
+        "required": false,
+        "help": "Limit search to a Confluence space key"
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "Max results to return (1-100)"
+      }
+    ],
+    "columns": [
+      "id",
+      "title",
+      "type",
+      "spaceKey",
+      "status",
+      "lastModified",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "confluence/search.js",
+    "sourceFile": "confluence/search.js"
+  },
+  {
+    "site": "confluence",
+    "name": "update",
+    "description": "Update a Confluence page body from Markdown or storage XHTML",
+    "access": "write",
+    "domain": "atlassian.net",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "id",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "Confluence page id"
+      },
+      {
+        "name": "file",
+        "type": "string",
+        "required": true,
+        "help": "Markdown file path"
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "required": false,
+        "help": "Optional replacement title; defaults to current title"
+      },
+      {
+        "name": "version-message",
+        "type": "string",
+        "required": false,
+        "help": "Confluence version message"
+      },
+      {
+        "name": "representation",
+        "type": "string",
+        "default": "markdown",
+        "required": false,
+        "help": "Input file format",
+        "choices": [
+          "markdown",
+          "storage"
+        ]
+      },
+      {
+        "name": "execute",
+        "type": "boolean",
+        "required": false,
+        "help": "Actually update the remote page"
+      }
+    ],
+    "columns": [
+      "status",
+      "id",
+      "title",
+      "spaceId",
+      "spaceKey",
+      "version",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "confluence/update.js",
+    "sourceFile": "confluence/update.js"
   },
   {
     "site": "coupang",
@@ -13938,6 +14428,171 @@
     "navigateBefore": "https://jimeng.jianying.com"
   },
   {
+    "site": "jira",
+    "name": "attachments",
+    "description": "Jira issue attachment metadata",
+    "access": "read",
+    "domain": "atlassian.net",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "key",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "Jira issue key, e.g. PROJ-123"
+      }
+    ],
+    "columns": [
+      "id",
+      "filename",
+      "mimeType",
+      "size",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "jira/attachments.js",
+    "sourceFile": "jira/attachments.js"
+  },
+  {
+    "site": "jira",
+    "name": "comments",
+    "description": "Jira issue comments as Markdown",
+    "access": "read",
+    "domain": "atlassian.net",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "key",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "Jira issue key, e.g. PROJ-123"
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 50,
+        "required": false,
+        "help": "Max comments to return (1-100)"
+      }
+    ],
+    "columns": [
+      "id",
+      "author",
+      "created",
+      "updated",
+      "markdown"
+    ],
+    "type": "js",
+    "modulePath": "jira/comments.js",
+    "sourceFile": "jira/comments.js"
+  },
+  {
+    "site": "jira",
+    "name": "issue",
+    "description": "Jira issue detail normalized for agents (description, comments, attachments, links)",
+    "access": "read",
+    "domain": "atlassian.net",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "key",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "Jira issue key, e.g. PROJ-123"
+      },
+      {
+        "name": "comments-limit",
+        "type": "int",
+        "default": 100,
+        "required": false,
+        "help": "Max comments to include (1-100)"
+      }
+    ],
+    "columns": [
+      "key",
+      "summary",
+      "issueType",
+      "status",
+      "priority",
+      "assignee",
+      "updated",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "jira/issue.js",
+    "sourceFile": "jira/issue.js"
+  },
+  {
+    "site": "jira",
+    "name": "links",
+    "description": "Jira issue links",
+    "access": "read",
+    "domain": "atlassian.net",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "key",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "Jira issue key, e.g. PROJ-123"
+      }
+    ],
+    "columns": [
+      "key",
+      "type",
+      "direction"
+    ],
+    "type": "js",
+    "modulePath": "jira/links.js",
+    "sourceFile": "jira/links.js"
+  },
+  {
+    "site": "jira",
+    "name": "search",
+    "description": "Search Jira issues with JQL",
+    "access": "read",
+    "domain": "atlassian.net",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "jql",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "JQL query, e.g. \"project = PROJ order by updated desc\""
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "Max issues to return (1-100)"
+      }
+    ],
+    "columns": [
+      "key",
+      "summary",
+      "issueType",
+      "status",
+      "priority",
+      "assignee",
+      "updated",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "jira/search.js",
+    "sourceFile": "jira/search.js"
+  },
+  {
     "site": "ke",
     "name": "chengjiao",
     "description": "贝壳找房成交记录",
@@ -14766,6 +15421,42 @@
   },
   {
     "site": "linkedin",
+    "name": "people-search",
+    "description": "Search standard LinkedIn (not Sales Navigator) for people by keyword. Each invocation consumes against LinkedIn's monthly Commercial Use Limit on people search; throttle accordingly.",
+    "access": "read",
+    "domain": "www.linkedin.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "keywords",
+        "type": "string",
+        "required": true,
+        "positional": true,
+        "help": "People search keywords, e.g. \"site reliability engineer berlin\""
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 5,
+        "required": false,
+        "help": "Maximum people to return (1-10); each query counts toward LinkedIn's monthly CUL"
+      }
+    ],
+    "columns": [
+      "rank",
+      "name",
+      "headline",
+      "location",
+      "profile_url"
+    ],
+    "type": "js",
+    "modulePath": "linkedin/people-search.js",
+    "sourceFile": "linkedin/people-search.js",
+    "navigateBefore": "https://www.linkedin.com"
+  },
+  {
+    "site": "linkedin",
     "name": "safe-send",
     "description": "Fail-closed LinkedIn message sender that verifies exact thread, recipient, and latest message before filling/sending",
     "access": "write",
@@ -15216,6 +15907,112 @@
     "type": "js",
     "modulePath": "linkedin/timeline.js",
     "sourceFile": "linkedin/timeline.js",
+    "navigateBefore": "https://www.linkedin.com"
+  },
+  {
+    "site": "linkedin-learning",
+    "name": "course",
+    "description": "Get LinkedIn Learning course detail by slug or course URL",
+    "access": "read",
+    "domain": "www.linkedin.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "slug",
+        "type": "string",
+        "required": true,
+        "positional": true,
+        "help": "Course slug (e.g. agentic-ai-build-your-first-agentic-ai-system) or full /learning/<slug> URL"
+      }
+    ],
+    "columns": [
+      "title",
+      "slug",
+      "description",
+      "difficulty",
+      "duration_sec",
+      "videos_count",
+      "rating",
+      "rating_count",
+      "released",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "linkedin-learning/course.js",
+    "sourceFile": "linkedin-learning/course.js",
+    "navigateBefore": "https://www.linkedin.com"
+  },
+  {
+    "site": "linkedin-learning",
+    "name": "search",
+    "description": "Search LinkedIn Learning courses, videos, and learning paths by keyword",
+    "access": "read",
+    "domain": "www.linkedin.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "keywords",
+        "type": "string",
+        "required": true,
+        "positional": true,
+        "help": "Search keywords, e.g. \"AI agent\""
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 10,
+        "required": false,
+        "help": "Maximum results to return (1-50)"
+      }
+    ],
+    "columns": [
+      "rank",
+      "type",
+      "title",
+      "instructor",
+      "difficulty",
+      "duration_sec",
+      "rating",
+      "rating_count",
+      "viewers",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "linkedin-learning/search.js",
+    "sourceFile": "linkedin-learning/search.js",
+    "navigateBefore": "https://www.linkedin.com"
+  },
+  {
+    "site": "linkedin-learning",
+    "name": "trending",
+    "description": "Browse LinkedIn Learning recommended courses across personalized carousels",
+    "access": "read",
+    "domain": "www.linkedin.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 10,
+        "required": false,
+        "help": "Maximum results to return (1-50)"
+      }
+    ],
+    "columns": [
+      "rank",
+      "group",
+      "type",
+      "title",
+      "difficulty",
+      "viewers",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "linkedin-learning/trending.js",
+    "sourceFile": "linkedin-learning/trending.js",
     "navigateBefore": "https://www.linkedin.com"
   },
   {
@@ -19968,7 +20765,11 @@
       "author",
       "upvotes",
       "comments",
-      "url"
+      "url",
+      "post_hint",
+      "url_overridden_by_dest",
+      "preview_image_url",
+      "gallery_urls"
     ],
     "type": "js",
     "modulePath": "reddit/frontpage.js",
@@ -20000,7 +20801,11 @@
       "comments",
       "postId",
       "author",
-      "url"
+      "url",
+      "post_hint",
+      "url_overridden_by_dest",
+      "preview_image_url",
+      "gallery_urls"
     ],
     "type": "js",
     "modulePath": "reddit/home.js",
@@ -20039,7 +20844,11 @@
       "comments",
       "postId",
       "author",
-      "url"
+      "url",
+      "post_hint",
+      "url_overridden_by_dest",
+      "preview_image_url",
+      "gallery_urls"
     ],
     "type": "js",
     "modulePath": "reddit/hot.js",
@@ -20073,7 +20882,11 @@
       "author",
       "url",
       "created_utc",
-      "selftext"
+      "selftext",
+      "post_hint",
+      "url_overridden_by_dest",
+      "preview_image_url",
+      "gallery_urls"
     ],
     "type": "js",
     "modulePath": "reddit/popular.js",
@@ -20306,7 +21119,11 @@
       "comments",
       "url",
       "created_utc",
-      "selftext"
+      "selftext",
+      "post_hint",
+      "url_overridden_by_dest",
+      "preview_image_url",
+      "gallery_urls"
     ],
     "type": "js",
     "modulePath": "reddit/search.js",
@@ -20360,7 +21177,11 @@
       "comments",
       "url",
       "created_utc",
-      "selftext"
+      "selftext",
+      "post_hint",
+      "url_overridden_by_dest",
+      "preview_image_url",
+      "gallery_urls"
     ],
     "type": "js",
     "modulePath": "reddit/subreddit.js",
@@ -23833,6 +24654,46 @@
   },
   {
     "site": "twitter",
+    "name": "device-follow",
+    "description": "Read the /i/timeline device-follow notification stream (tweets aggregated under a bell-icon \"new posts from @userA and N others\" notification)",
+    "access": "read",
+    "domain": "x.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "Maximum number of tweets to return (1-200, default 20)"
+      },
+      {
+        "name": "top-by-engagement",
+        "type": "int",
+        "default": 0,
+        "required": false,
+        "help": "When set to N>0, re-rank by weighted engagement and return the top N. Default 0 keeps upstream ordering."
+      }
+    ],
+    "columns": [
+      "id",
+      "author",
+      "text",
+      "likes",
+      "retweets",
+      "replies",
+      "views",
+      "created_at",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "twitter/device-follow.js",
+    "sourceFile": "twitter/device-follow.js",
+    "navigateBefore": "https://x.com"
+  },
+  {
+    "site": "twitter",
     "name": "download",
     "description": "Download Twitter/X media (images and videos). Provide either <username> to fetch every media item from their profile via the GraphQL UserMedia endpoint with cursor pagination, or --tweet-url to download a single tweet.",
     "access": "read",
@@ -24114,6 +24975,49 @@
   },
   {
     "site": "twitter",
+    "name": "list-create",
+    "description": "Create a new Twitter/X list (returns the new list id)",
+    "access": "write",
+    "domain": "x.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true,
+        "positional": true,
+        "help": "List name (max 25 chars)"
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "default": "",
+        "required": false,
+        "help": "Optional list description (max 100 chars)"
+      },
+      {
+        "name": "mode",
+        "type": "string",
+        "default": "public",
+        "required": false,
+        "help": "public | private"
+      }
+    ],
+    "columns": [
+      "id",
+      "name",
+      "description",
+      "mode",
+      "status"
+    ],
+    "type": "js",
+    "modulePath": "twitter/list-create.js",
+    "sourceFile": "twitter/list-create.js",
+    "navigateBefore": "https://x.com"
+  },
+  {
+    "site": "twitter",
     "name": "list-remove",
     "description": "Remove a user from a Twitter/X list you own (toggles via UI; no-op if not currently a member)",
     "access": "write",
@@ -24182,6 +25086,7 @@
     "columns": [
       "id",
       "author",
+      "bio",
       "text",
       "likes",
       "retweets",
@@ -24189,7 +25094,9 @@
       "created_at",
       "url",
       "has_media",
-      "media_urls"
+      "media_urls",
+      "card",
+      "quoted_tweet"
     ],
     "type": "js",
     "modulePath": "twitter/list-tweets.js",
@@ -24580,13 +25487,16 @@
     "columns": [
       "id",
       "author",
+      "bio",
       "text",
       "created_at",
       "likes",
       "views",
       "url",
       "has_media",
-      "media_urls"
+      "media_urls",
+      "card",
+      "quoted_tweet"
     ],
     "type": "js",
     "modulePath": "twitter/search.js",
@@ -24627,12 +25537,15 @@
     "columns": [
       "id",
       "author",
+      "bio",
       "text",
       "likes",
       "retweets",
       "url",
       "has_media",
-      "media_urls"
+      "media_urls",
+      "card",
+      "quoted_tweet"
     ],
     "type": "js",
     "modulePath": "twitter/thread.js",
@@ -24677,6 +25590,7 @@
     "columns": [
       "id",
       "author",
+      "bio",
       "text",
       "likes",
       "retweets",
@@ -24685,7 +25599,9 @@
       "created_at",
       "url",
       "has_media",
-      "media_urls"
+      "media_urls",
+      "card",
+      "quoted_tweet"
     ],
     "type": "js",
     "modulePath": "twitter/timeline.js",
@@ -24762,7 +25678,8 @@
       "views",
       "url",
       "has_media",
-      "media_urls"
+      "media_urls",
+      "quoted_tweet"
     ],
     "type": "js",
     "modulePath": "twitter/tweets.js",
@@ -29947,6 +30864,56 @@
   },
   {
     "site": "zhihu",
+    "name": "answer-comments",
+    "description": "知乎回答评论列表",
+    "access": "read",
+    "domain": "www.zhihu.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "id",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "Answer ID, full Zhihu answer URL, or typed target (answer:<qid>:<aid>)"
+      },
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "Number of top-level comments (max 1000)"
+      },
+      {
+        "name": "replies-limit",
+        "type": "int",
+        "default": 3,
+        "required": false,
+        "help": "Number of replies to include per top-level comment (max 100)"
+      }
+    ],
+    "columns": [
+      "rank",
+      "comment_rank",
+      "reply_rank",
+      "depth",
+      "id",
+      "parent_id",
+      "author",
+      "reply_to",
+      "likes",
+      "created_at",
+      "url",
+      "content"
+    ],
+    "type": "js",
+    "modulePath": "zhihu/answer-comments.js",
+    "sourceFile": "zhihu/answer-comments.js",
+    "navigateBefore": "https://www.zhihu.com"
+  },
+  {
+    "site": "zhihu",
     "name": "answer-detail",
     "description": "知乎单个回答完整内容（按 answer ID 获取）",
     "access": "read",
@@ -30336,8 +31303,10 @@
     ],
     "columns": [
       "rank",
+      "id",
       "author",
       "votes",
+      "url",
       "content"
     ],
     "type": "js",
