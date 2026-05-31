@@ -311,6 +311,10 @@ Extension bumped to 1.0.9 (Accessibility.enable allowlist + downloads permission
 
 Extension bumped to 1.0.6 (screenshot `--width` / `--height` / `--full-page` flags, automation tab group color marker, automation container reuse fix).
 
+### Bug Fixes
+
+* **xiaohongshu** — fix `publish --topics` leaving bare `#` characters with no linked topics. The adapter now types `#keyword` into the body editor to trigger the inline suggestion dropdown and selects the matching topic, matching the current creator-center UI.
+
 ### ⚠ BREAKING CHANGES
 
 * **linux-do** — remove deprecated compatibility shims `linux-do hot`, `linux-do category`, `linux-do latest`. Use `linux-do feed --view top --period <period>`, `linux-do feed --category <id-or-name>`, and `linux-do feed --view latest` instead.
