@@ -11932,6 +11932,63 @@
   },
   {
     "site": "gemini",
+    "name": "detail",
+    "description": "Open a Gemini web conversation by id, URL, or sidebar title and read its turns",
+    "access": "read",
+    "domain": "gemini.google.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "id",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "Conversation id, /app/<id> URL, or sidebar title"
+      }
+    ],
+    "columns": [
+      "Index",
+      "Role",
+      "Text"
+    ],
+    "type": "js",
+    "modulePath": "gemini/detail.js",
+    "sourceFile": "gemini/detail.js",
+    "navigateBefore": false,
+    "siteSession": "persistent"
+  },
+  {
+    "site": "gemini",
+    "name": "history",
+    "description": "List visible Gemini web conversation history from the sidebar",
+    "access": "read",
+    "domain": "gemini.google.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "Max conversations to show"
+      }
+    ],
+    "columns": [
+      "Index",
+      "Id",
+      "Title",
+      "Url"
+    ],
+    "type": "js",
+    "modulePath": "gemini/history.js",
+    "sourceFile": "gemini/history.js",
+    "navigateBefore": false,
+    "siteSession": "persistent"
+  },
+  {
+    "site": "gemini",
     "name": "image",
     "description": "Generate images with Gemini web and save them locally",
     "access": "write",
@@ -12010,6 +12067,46 @@
     "type": "js",
     "modulePath": "gemini/new.js",
     "sourceFile": "gemini/new.js",
+    "navigateBefore": false,
+    "siteSession": "persistent"
+  },
+  {
+    "site": "gemini",
+    "name": "read",
+    "description": "Read the turns visible in the current Gemini web conversation",
+    "access": "read",
+    "domain": "gemini.google.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [],
+    "columns": [
+      "Index",
+      "Role",
+      "Text"
+    ],
+    "type": "js",
+    "modulePath": "gemini/read.js",
+    "sourceFile": "gemini/read.js",
+    "navigateBefore": false,
+    "siteSession": "persistent"
+  },
+  {
+    "site": "gemini",
+    "name": "status",
+    "description": "Check Gemini web page availability and login state",
+    "access": "read",
+    "domain": "gemini.google.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [],
+    "columns": [
+      "Status",
+      "Login",
+      "Url"
+    ],
+    "type": "js",
+    "modulePath": "gemini/status.js",
+    "sourceFile": "gemini/status.js",
     "navigateBefore": false,
     "siteSession": "persistent"
   },
@@ -19353,6 +19450,158 @@
     "modulePath": "maimai/search-talents.js",
     "sourceFile": "maimai/search-talents.js",
     "navigateBefore": "https://maimai.cn"
+  },
+  {
+    "site": "manus",
+    "name": "connectors",
+    "description": "List available Manus connectors (integrations).",
+    "access": "read",
+    "domain": "manus.im",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 50,
+        "required": false,
+        "help": "Max connectors to return"
+      }
+    ],
+    "columns": [
+      "UID",
+      "Name",
+      "Brief"
+    ],
+    "type": "js",
+    "modulePath": "manus/connectors.js",
+    "sourceFile": "manus/connectors.js",
+    "navigateBefore": true,
+    "siteSession": "persistent"
+  },
+  {
+    "site": "manus",
+    "name": "credits",
+    "description": "Show Manus credit balance and refresh details.",
+    "access": "read",
+    "domain": "manus.im",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [],
+    "columns": [
+      "Field",
+      "Value"
+    ],
+    "type": "js",
+    "modulePath": "manus/credits.js",
+    "sourceFile": "manus/credits.js",
+    "navigateBefore": true,
+    "siteSession": "persistent"
+  },
+  {
+    "site": "manus",
+    "name": "list",
+    "description": "List Manus sessions (tasks).",
+    "access": "read",
+    "domain": "manus.im",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "limit",
+        "type": "int",
+        "default": 20,
+        "required": false,
+        "help": "Max sessions to return"
+      },
+      {
+        "name": "archived",
+        "type": "bool",
+        "default": false,
+        "required": false,
+        "help": "Include archived sessions"
+      }
+    ],
+    "columns": [
+      "id",
+      "Title",
+      "Status",
+      "Last Message",
+      "Last Updated",
+      "Credits"
+    ],
+    "type": "js",
+    "modulePath": "manus/list.js",
+    "sourceFile": "manus/list.js",
+    "navigateBefore": true,
+    "siteSession": "persistent"
+  },
+  {
+    "site": "manus",
+    "name": "read",
+    "description": "Show details for a specific Manus session.",
+    "access": "read",
+    "domain": "manus.im",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "uid",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "Session UID"
+      }
+    ],
+    "columns": [
+      "Field",
+      "Value"
+    ],
+    "type": "js",
+    "modulePath": "manus/read.js",
+    "sourceFile": "manus/read.js",
+    "navigateBefore": true,
+    "siteSession": "persistent"
+  },
+  {
+    "site": "manus",
+    "name": "skills",
+    "description": "List Manus skills (user-added and system).",
+    "access": "read",
+    "domain": "manus.im",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [],
+    "columns": [
+      "ID",
+      "Name",
+      "Description",
+      "Source"
+    ],
+    "type": "js",
+    "modulePath": "manus/skills.js",
+    "sourceFile": "manus/skills.js",
+    "navigateBefore": true,
+    "siteSession": "persistent"
+  },
+  {
+    "site": "manus",
+    "name": "status",
+    "description": "Show current Manus user profile and credit summary.",
+    "access": "read",
+    "domain": "manus.im",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [],
+    "columns": [
+      "Field",
+      "Value"
+    ],
+    "type": "js",
+    "modulePath": "manus/status.js",
+    "sourceFile": "manus/status.js",
+    "navigateBefore": true,
+    "siteSession": "persistent"
   },
   {
     "site": "maven",
