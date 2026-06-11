@@ -3534,6 +3534,34 @@
   },
   {
     "site": "bilibili",
+    "name": "follow",
+    "description": "关注 B站用户（官方 API，需登录）",
+    "access": "write",
+    "domain": "www.bilibili.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "target",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "目标 UID / 用户名 / space.bilibili.com 链接"
+      }
+    ],
+    "columns": [
+      "mid",
+      "name",
+      "status",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "bilibili/follow.js",
+    "sourceFile": "bilibili/follow.js",
+    "navigateBefore": "https://www.bilibili.com"
+  },
+  {
+    "site": "bilibili",
     "name": "following",
     "description": "获取 Bilibili 用户的关注列表",
     "access": "read",
@@ -3826,6 +3854,34 @@
     "type": "js",
     "modulePath": "bilibili/summary.js",
     "sourceFile": "bilibili/summary.js",
+    "navigateBefore": "https://www.bilibili.com"
+  },
+  {
+    "site": "bilibili",
+    "name": "unfollow",
+    "description": "取消关注 B站用户（官方 API，需登录）",
+    "access": "write",
+    "domain": "www.bilibili.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "target",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "目标 UID / 用户名 / space.bilibili.com 链接"
+      }
+    ],
+    "columns": [
+      "mid",
+      "name",
+      "status",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "bilibili/unfollow.js",
+    "sourceFile": "bilibili/unfollow.js",
     "navigateBefore": "https://www.bilibili.com"
   },
   {
@@ -27123,7 +27179,11 @@
       "type",
       "author",
       "score",
-      "text"
+      "text",
+      "post_hint",
+      "url_overridden_by_dest",
+      "preview_image_url",
+      "gallery_urls"
     ],
     "type": "js",
     "modulePath": "reddit/read.js",
@@ -37093,6 +37153,8 @@
     "columns": [
       "rank",
       "author",
+      "userId",
+      "profileUrl",
       "text",
       "likes",
       "time",
@@ -37504,6 +37566,33 @@
   },
   {
     "site": "xiaohongshu",
+    "name": "follow",
+    "description": "关注小红书用户 (profile UI automation)",
+    "access": "write",
+    "domain": "www.xiaohongshu.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "user-id",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "User ID (e.g. 5d8f88dc0000000001005d3a) or profile URL"
+      }
+    ],
+    "columns": [
+      "status",
+      "user_id",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "xiaohongshu/follow.js",
+    "sourceFile": "xiaohongshu/follow.js",
+    "navigateBefore": false
+  },
+  {
+    "site": "xiaohongshu",
     "name": "login",
     "description": "Open xiaohongshu login and wait until the browser session is authenticated",
     "access": "write",
@@ -37682,6 +37771,33 @@
     "type": "js",
     "modulePath": "xiaohongshu/search.js",
     "sourceFile": "xiaohongshu/search.js",
+    "navigateBefore": false
+  },
+  {
+    "site": "xiaohongshu",
+    "name": "unfollow",
+    "description": "取消关注小红书用户 (profile UI automation)",
+    "access": "write",
+    "domain": "www.xiaohongshu.com",
+    "strategy": "cookie",
+    "browser": true,
+    "args": [
+      {
+        "name": "user-id",
+        "type": "str",
+        "required": true,
+        "positional": true,
+        "help": "User ID (e.g. 5d8f88dc0000000001005d3a) or profile URL"
+      }
+    ],
+    "columns": [
+      "status",
+      "user_id",
+      "url"
+    ],
+    "type": "js",
+    "modulePath": "xiaohongshu/unfollow.js",
+    "sourceFile": "xiaohongshu/unfollow.js",
     "navigateBefore": false
   },
   {
