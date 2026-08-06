@@ -6,6 +6,7 @@ import './chat.js';
 import './ui.js';
 import './storage.js';
 import './audit-extras.js';
+import './usage.js';
 
 function makePage(evaluateResults = []) {
     const queue = [...evaluateResults];
@@ -33,6 +34,7 @@ describe('kimi adapter registration', () => {
             model: 'write',
             'history-rename': 'write',
             'sign-out': 'write',
+            usage: 'read',
         };
         for (const [name, access] of Object.entries(expected)) {
             const cmd = getRegistry().get(`kimi/${name}`);
@@ -41,6 +43,67 @@ describe('kimi adapter registration', () => {
             expect(cmd.domain).toBe('kimi.com');
             expect(cmd.siteSession).toBe('persistent');
         }
+    });
+});
+
+describe('kimi usage command', () => {
+    const usageCommand = getRegistry().get('kimi/usage');
+
+    it('returns Kimi membership quota usage as a single read row', async () => {
+        const page = makePage([{
+            membershipName: 'Kimi Pro',
+            membershipValidUntil: '2026-12-31',
+            totalUsagePct: '12.5%',
+            totalResetIn: '3 天后重置',
+            fiveHourUsagePct: '45%',
+            fiveHourResetIn: '1 小时后重置',
+            sevenDayUsagePct: '22%',
+            sevenDayResetIn: '4 天后重置',
+            giftUsagePct: '6.5%',
+            giftValidUntil: '2026-08-01',
+            balance: '¥12.30',
+            monthlySpend: '¥2.00 / ¥100',
+        }]);
+
+        await expect(usageCommand.func(page)).resolves.toEqual([{
+            membershipName: 'Kimi Pro',
+            membershipValidUntil: '2026-12-31',
+            totalUsagePct: 12.5,
+            totalResetIn: '3 天后重置',
+            fiveHourUsagePct: 45,
+            fiveHourResetIn: '1 小时后重置',
+            sevenDayUsagePct: 22,
+            sevenDayResetIn: '4 天后重置',
+            giftUsagePct: 6.5,
+            giftValidUntil: '2026-08-01',
+            balance: '¥12.30',
+            monthlySpend: '¥2.00 / ¥100',
+        }]);
+        expect(page.goto).toHaveBeenCalledWith('https://www.kimi.com/membership/subscription?tab=quota');
+    });
+
+    it('typed-fails when the membership quota page exposes no required usage sections', async () => {
+        const page = makePage([{}]);
+
+        await expect(usageCommand.func(page)).rejects.toBeInstanceOf(CommandExecutionError);
+    });
+
+    it('typed-fails malformed membership quota payloads instead of returning null success rows', async () => {
+        await expect(usageCommand.func(makePage([[]]))).rejects.toBeInstanceOf(CommandExecutionError);
+        await expect(usageCommand.func(makePage([{
+            totalUsagePct: '12%',
+            totalResetIn: '3 天后重置',
+            fiveHourUsagePct: '45%',
+            fiveHourResetIn: '1 小时后重置',
+        }]))).rejects.toBeInstanceOf(CommandExecutionError);
+        await expect(usageCommand.func(makePage([{
+            totalUsagePct: 'not a percent',
+            totalResetIn: '3 天后重置',
+            fiveHourUsagePct: '45%',
+            fiveHourResetIn: '1 小时后重置',
+            sevenDayUsagePct: '22%',
+            sevenDayResetIn: '4 天后重置',
+        }]))).rejects.toBeInstanceOf(CommandExecutionError);
     });
 });
 
